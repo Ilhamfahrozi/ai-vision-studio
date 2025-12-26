@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/lib/AuthContext';
+import { updateProfile, updatePassword } from 'firebase/auth';
 import styles from '@/styles/Profile.module.css';
 
 interface Detection {
@@ -23,6 +24,15 @@ export default function Profile() {
     total: 0,
     expressions: {} as Record<string, number>
   });
+  
+  // Edit mode states
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [updateMessage, setUpdateMessage] = useState('');
+  const [updateError, setUpdateError] = useState('');
 
   useEffect(() => {
     if (!user) {
@@ -31,6 +41,12 @@ export default function Profile() {
     }
 
     fetchDetections();
+  }, [user]);
+  
+  useEffect(() => {
+    if (user) {
+      setEditName(user.displayName || '');
+    }
   }, [user]);
 
   const fetchDetections = async () => {
@@ -66,6 +82,52 @@ export default function Profile() {
       total: data.length,
       expressions
     });
+  };
+
+  const handleUpdateProfile = async () => {
+    if (!user) return;
+    
+    setUpdateError('');
+    setUpdateMessage('');
+    
+    try {
+      await updateProfile(user, {
+        displayName: editName
+      });
+      setUpdateMessage('✅ Profile updated successfully!');
+      setIsEditing(false);
+      setTimeout(() => setUpdateMessage(''), 3000);
+    } catch (error: any) {
+      setUpdateError(error.message || 'Failed to update profile');
+    }
+  };
+  
+  const handleChangePassword = async () => {
+    if (!user) return;
+    
+    setUpdateError('');
+    setUpdateMessage('');
+    
+    if (newPassword.length < 6) {
+      setUpdateError('Password must be at least 6 characters');
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setUpdateError('Passwords do not match');
+      return;
+    }
+    
+    try {
+      await updatePassword(user, newPassword);
+      setUpdateMessage('✅ Password changed successfully!');
+      setIsChangingPassword(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setUpdateMessage(''), 3000);
+    } catch (error: any) {
+      setUpdateError(error.message || 'Failed to change password. Try logging out and in again.');
+    }
   };
 
   const handleLogout = async () => {
@@ -113,8 +175,68 @@ export default function Profile() {
                 </div>
               )}
             </div>
-            <h1>{user.displayName || 'User'}</h1>
-            <p className={styles.email}>{user.email}</p>
+            
+            {!isEditing && !isChangingPassword ? (
+              <>
+                <h1>{user.displayName || 'User'}</h1>
+                <p className={styles.email}>{user.email}</p>
+                <div className={styles.editButtons}>
+                  <button onClick={() => { setIsEditing(true); setEditName(user.displayName || ''); }} className={styles.editButton}>
+                    Edit Profile
+                  </button>
+                  <button onClick={() => setIsChangingPassword(true)} className={styles.editButton}>
+                    Change Password
+                  </button>
+                </div>
+              </>
+            ) : isEditing ? (
+              <div className={styles.editForm}>
+                <h2>Edit Profile</h2>
+                <div className={styles.inputGroup}>
+                  <label>Display Name</label>
+                  <input 
+                    type="text" 
+                    value={editName} 
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Enter your name"
+                  />
+                </div>
+                {updateMessage && <div className={styles.success}>{updateMessage}</div>}
+                {updateError && <div className={styles.error}>{updateError}</div>}
+                <div className={styles.formButtons}>
+                  <button onClick={handleUpdateProfile} className={styles.saveButton}>Save Changes</button>
+                  <button onClick={() => { setIsEditing(false); setUpdateError(''); setUpdateMessage(''); }} className={styles.cancelButton}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.editForm}>
+                <h2>Change Password</h2>
+                <div className={styles.inputGroup}>
+                  <label>New Password</label>
+                  <input 
+                    type="password" 
+                    value={newPassword} 
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password (min 6 characters)"
+                  />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>Confirm Password</label>
+                  <input 
+                    type="password" 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter new password"
+                  />
+                </div>
+                {updateMessage && <div className={styles.success}>{updateMessage}</div>}
+                {updateError && <div className={styles.error}>{updateError}</div>}
+                <div className={styles.formButtons}>
+                  <button onClick={handleChangePassword} className={styles.saveButton}>Change Password</button>
+                  <button onClick={() => { setIsChangingPassword(false); setNewPassword(''); setConfirmPassword(''); setUpdateError(''); setUpdateMessage(''); }} className={styles.cancelButton}>Cancel</button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Stats Cards */}

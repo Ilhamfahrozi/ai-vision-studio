@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(246, 240, 215, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   display: flex;
@@ -25,15 +25,31 @@
 }
 
 .modal {
-  background: white;
-  border-radius: 24px;
+  background: var(--color-white);
+  border-radius: 0;
+  border: 6px solid var(--color-gray-900);
   padding: 50px 60px;
   width: 100%;
   max-width: 600px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    12px 12px 0 var(--color-gray-900);
   animation: slideUp 0.5s ease;
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
+}
+
+.modal::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 50px;
+  height: 50px;
+  background: var(--color-coral);
+  border: 4px solid var(--color-gray-900);
+  border-radius: 50%;
+  z-index: 10;
 }
 
 @keyframes slideUp {
@@ -54,27 +70,28 @@
 
 .logo {
   font-size: 42px;
-  font-weight: bold;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 900;
+  color: var(--color-gray-900);
   margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: -2px;
 }
 
 .subtitle {
-  color: #666;
+  color: var(--color-gray-600);
   font-size: 16px;
   margin: 0;
+  font-weight: 500;
 }
 
 .tabs {
   display: flex;
   gap: 10px;
   margin-bottom: 25px;
-  background: #f5f5f5;
+  background: var(--color-cream);
   padding: 5px;
-  border-radius: 12px;
+  border-radius: 0;
+  border: 4px solid var(--color-gray-900);
 }
 
 .tab {
@@ -82,27 +99,32 @@
   padding: 12px;
   background: transparent;
   border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #666;
+  border-radius: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-gray-600);
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .tab.active {
-  background: white;
-  color: #667eea;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--color-coral);
+  color: var(--color-white);
+  box-shadow: 4px 4px 0 var(--color-gray-900);
+  transform: translate(-2px, -2px);
 }
 
 .error {
-  background: #fee;
-  color: #c33;
+  background: var(--color-peach);
+  color: var(--color-coral-dark);
   padding: 12px;
-  border-radius: 10px;
+  border-radius: 0;
+  border: 4px solid var(--color-coral-dark);
   margin-bottom: 20px;
   font-size: 14px;
+  font-weight: 700;
   text-align: center;
   animation: shake 0.4s;
 }
@@ -132,45 +154,50 @@
 .inputGroup input {
   width: 100%;
   padding: 16px 18px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
+  border: 4px solid var(--color-gray-900);
+  border-radius: 0;
   font-size: 16px;
-  transition: all 0.3s;
+  transition: all 0.2s;
   box-sizing: border-box;
+  font-weight: 500;
 }
 
 .inputGroup input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  border-color: var(--color-coral);
+  box-shadow: 6px 6px 0 var(--color-gray-900);
+  transform: translate(-3px, -3px);
 }
 
 .inputGroup input:disabled {
-  background: #f5f5f5;
+  background: var(--color-gray-200);
   cursor: not-allowed;
 }
 
 .submitButton {
   width: 100%;
   padding: 18px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
+  background: var(--color-coral);
+  color: var(--color-white);
+  border: 4px solid var(--color-gray-900);
+  border-radius: 0;
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 900;
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all 0.2s;
+  box-shadow: 6px 6px 0 var(--color-gray-900);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .submitButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 var(--color-gray-900);
 }
 
 .submitButton:active:not(:disabled) {
-  transform: translateY(0);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-gray-900);
 }
 
 .submitButton:disabled {
@@ -181,11 +208,12 @@
 
 .notice {
   text-align: center;
-  color: #999;
+  color: var(--color-gray-600);
   font-size: 14px;
+  font-weight: 600;
   margin: 25px 0 0 0;
   padding-top: 25px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 3px solid var(--color-gray-900);
 }
 
 @media (max-width: 500px) {
@@ -195,6 +223,13 @@
 
   .logo {
     font-size: 32px;
+  }
+  
+  .modal::before {
+    width: 35px;
+    height: 35px;
+    top: -10px;
+    right: -10px;
   }
 }
 

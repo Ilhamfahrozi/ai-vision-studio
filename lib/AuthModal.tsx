@@ -23,6 +23,7 @@ export default function AuthModal() {
     try {
       if (isLogin) {
         await login(email, password);
+        // Will auto-close modal after successful login
       } else {
         if (password !== confirmPassword) {
           setError('Passwords do not match');
@@ -35,6 +36,16 @@ export default function AuthModal() {
           return;
         }
         await signup(email, password, name);
+        // After successful signup, switch to login tab
+        setIsLogin(true);
+        setError('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setName('');
+        alert('✅ Account created! Please login with your credentials.');
+        setLoading(false);
+        return;
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
