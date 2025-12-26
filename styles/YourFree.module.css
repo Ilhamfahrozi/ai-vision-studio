@@ -1,486 +1,394 @@
+/* YourFree Component Styles - Matching Test Free Layout */
 .container {
+  width: 100%;
   min-height: 100vh;
   background: #f6f0d7;
-  padding: 20px;
+  padding: 2rem;
 }
 
 .header {
-  max-width: 1400px;
-  margin: 0 auto 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-}
-
-.header h1 {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #000;
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .backButton {
-  padding: 12px 24px;
-  background: #fff;
-  color: #000;
-  border: 4px solid #000;
-  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  background: #fdacac;
+  color: #1a1a1a;
+  border: 4px solid #1a1a1a;
+  border-radius: 0.5rem;
+  font-weight: bold;
   cursor: pointer;
-  box-shadow: 6px 6px 0 #000;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
   transition: all 0.2s;
-  font-size: 16px;
+  margin-bottom: 1rem;
 }
 
 .backButton:hover {
   transform: translate(2px, 2px);
-  box-shadow: 4px 4px 0 #000;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
 }
 
+.header h1 {
+  font-size: 2.5rem;
+  color: #1a1a1a;
+  margin-top: 1rem;
+}
+
+/* Dual Panel Layout */
 .content {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.success {
-  background: #9cab84;
-  color: #000;
-  padding: 15px 20px;
-  margin-bottom: 20px;
-  border: 4px solid #000;
-  font-weight: 700;
-  box-shadow: 6px 6px 0 #000;
-}
-
-.error {
-  background: #fdacac;
-  color: #000;
-  padding: 15px 20px;
-  margin-bottom: 20px;
-  border: 4px solid #000;
-  font-weight: 700;
-  box-shadow: 6px 6px 0 #000;
-}
-
-.topBar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 30px;
-}
-
-.createButton {
-  padding: 15px 30px;
-  background: #fdacac;
-  color: #000;
-  border: 4px solid #000;
-  font-weight: 900;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 8px 8px 0 #000;
-  transition: all 0.2s;
-}
-
-.createButton:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 6px 6px 0 #000;
-}
-
-.formContainer {
-  background: white;
-  border: 6px solid #000;
-  padding: 40px;
-  margin-bottom: 40px;
-  box-shadow: 12px 12px 0 #000;
-}
-
-.formContainer h2 {
-  font-size: 2rem;
-  font-weight: 900;
-  margin-bottom: 30px;
-  color: #000;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-}
-
-.inputGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.inputGroup label {
-  font-weight: 700;
-  font-size: 16px;
-  color: #000;
-}
-
-.inputGroup input,
-.inputGroup select {
-  padding: 12px 16px;
-  border: 4px solid #000;
-  background: #fff;
-  font-size: 16px;
-  font-family: inherit;
-  box-shadow: 4px 4px 0 #000;
-  transition: all 0.2s;
-}
-
-.inputGroup input:focus,
-.inputGroup select:focus {
-  outline: none;
-  transform: translate(1px, 1px);
-  box-shadow: 3px 3px 0 #000;
-}
-
-.uploadSection {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 30px;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
 }
 
-.uploadGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.panel {
+  background: white;
+  border: 6px solid #1a1a1a;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.15);
 }
 
-.uploadGroup label {
-  font-weight: 700;
-  font-size: 16px;
-  color: #000;
+.panelTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 4px solid #9cab84;
 }
 
-.imageSourceButtons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+/* Camera Section */
+.cameraContainer {
+  margin-bottom: 1rem;
 }
 
-.sourceButton,
-.sourceButtonActive {
-  flex: 1;
-  padding: 12px;
-  background: #fff;
-  color: #000;
-  border: 4px solid #000;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 4px 4px 0 #000;
-  transition: all 0.2s;
-  font-size: 14px;
+.cameraSelection {
+  margin-bottom: 1rem;
 }
 
-.sourceButtonActive {
-  background: #9cab84;
+.cameraSelection label {
+  display: block;
+  font-weight: bold;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
 }
 
-.sourceButton:hover,
-.sourceButtonActive:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #000;
+.cameraSelect {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 3px solid #1a1a1a;
+  border-radius: 0.5rem;
+  background: white;
+  color: #1a1a1a;
 }
 
-.webcamContainer {
-  border: 4px solid #000;
-  padding: 15px;
-  background: #f9f9f9;
-  box-shadow: 4px 4px 0 #000;
-  margin-bottom: 15px;
+.webcamWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #000;
+  border: 4px solid #1a1a1a;
+  border-radius: 0.5rem;
+  overflow: hidden;
 }
 
 .webcam {
-  width: 100%;
-  border: 2px solid #000;
-  margin-bottom: 15px;
-}
-
-.captureButton {
-  width: 100%;
-  padding: 12px;
-  background: #fdacac;
-  color: #000;
-  border: 4px solid #000;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 6px 6px 0 #000;
-  transition: all 0.2s;
-  font-size: 16px;
-}
-
-.captureButton:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 4px 4px 0 #000;
-}
-
-.uploadButton {
-  padding: 15px;
-  background: #9cab84;
-  color: #000;
-  border: 4px solid #000;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 6px 6px 0 #000;
-  transition: all 0.2s;
-  font-size: 16px;
-}
-
-.uploadButton:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 4px 4px 0 #000;
-}
-
-.preview {
-  border: 4px solid #000;
-  padding: 10px;
-  background: #f9f9f9;
-  box-shadow: 4px 4px 0 #000;
-  position: relative;
-}
-
-.preview img {
-  width: 100%;
-  max-height: 200px;
-  object-fit: cover;
-  border: 2px solid #000;
-  margin-bottom: 10px;
-}
-
-.removeButton {
-  width: 100%;
-  padding: 8px;
-  background: #fdacac;
-  color: #000;
-  border: 3px solid #000;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 4px 4px 0 #000;
-  transition: all 0.2s;
-  font-size: 14px;
-}
-
-.removeButton:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #000;
-}
-
-.audioPreview {
-  border: 4px solid #000;
-  padding: 15px;
-  background: #f9f9f9;
-  box-shadow: 4px 4px 0 #000;
-}
-
-.audioPreview audio {
-  width: 100%;
-}
-
-.patternSection {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.formButtons {
-  display: flex;
-  gap: 15px;
-  margin-top: 10px;
-}
-
-.saveButton {
-  flex: 1;
-  padding: 16px;
-  background: #fdacac;
-  color: #000;
-  border: 4px solid #000;
-  font-weight: 900;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 8px 8px 0 #000;
-  transition: all 0.2s;
-}
-
-.saveButton:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 6px 6px 0 #000;
-}
-
-.cancelButton {
-  flex: 1;
-  padding: 16px;
-  background: #fff;
-  color: #000;
-  border: 4px solid #000;
-  font-weight: 700;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 8px 8px 0 #000;
-  transition: all 0.2s;
-}
-
-.cancelButton:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 6px 6px 0 #000;
-}
-
-.triggersList {
-  margin-top: 40px;
-}
-
-.triggersList h2 {
-  font-size: 2rem;
-  font-weight: 900;
-  margin-bottom: 30px;
-  color: #000;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  font-size: 18px;
-  color: #666;
-}
-
-.empty {
-  text-align: center;
-  padding: 60px 20px;
-  background: white;
-  border: 6px solid #000;
-  box-shadow: 12px 12px 0 #000;
-}
-
-.empty p {
-  font-size: 18px;
-  font-weight: 700;
-  color: #666;
-}
-
-.triggersGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 30px;
-}
-
-.triggerCard {
-  background: white;
-  border: 6px solid #000;
-  overflow: hidden;
-  box-shadow: 8px 8px 0 #000;
-  transition: all 0.3s;
-}
-
-.triggerCard:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 6px 6px 0 #000;
-}
-
-.triggerImage {
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  border-bottom: 4px solid #000;
-}
-
-.triggerImage img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.triggerInfo {
-  padding: 20px;
-}
-
-.triggerInfo h3 {
-  font-size: 1.5rem;
-  font-weight: 900;
-  margin-bottom: 15px;
-  color: #000;
-}
-
-.triggerPattern {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.patternBadge {
-  padding: 8px 15px;
-  background: #9cab84;
-  border: 3px solid #000;
-  font-weight: 700;
-  font-size: 14px;
-  box-shadow: 3px 3px 0 #000;
-}
-
-.triggerAudio {
-  margin-top: 15px;
-}
-
-.triggerAudio audio {
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 40px;
+  height: 100%;
 }
 
-.triggerActions {
+.placeholder {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #1a1a1a;
+  border: 4px solid #1a1a1a;
+  border-radius: 0.5rem;
   display: flex;
-  border-top: 4px solid #000;
+  align-items: center;
+  justify-content: center;
 }
 
-.editButton,
-.deleteButton {
-  flex: 1;
-  padding: 15px;
-  border: none;
-  font-weight: 700;
+.placeholder p {
+  color: #9cab84;
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.btnStart,
+.btnStop {
+  padding: 1rem 2rem;
+  border: 5px solid #1a1a1a;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  font-size: 1.1rem;
   cursor: pointer;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
   transition: all 0.2s;
-  font-size: 16px;
 }
 
-.editButton {
+.btnStart {
   background: #9cab84;
-  color: #000;
-  border-right: 2px solid #000;
+  color: white;
 }
 
-.editButton:hover {
-  background: #8a9a74;
-}
-
-.deleteButton {
+.btnStop {
   background: #fdacac;
-  color: #000;
-  border-left: 2px solid #000;
+  color: #1a1a1a;
 }
 
-.deleteButton:hover {
-  background: #fc9a9a;
+.btnStart:hover,
+.btnStop:hover {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
 }
 
-@media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .uploadSection,
-  .patternSection {
+.btnStart:active,
+.btnStop:active {
+  transform: translate(6px, 6px);
+  box-shadow: none;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.statBox {
+  background: #f6f0d7;
+  border: 3px solid #1a1a1a;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.statBox strong {
+  display: block;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.statBox p {
+  color: #1a1a1a;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Output Section */
+.outputContainer {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #f6f0d7;
+  border: 4px solid #1a1a1a;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.outputImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.outputPlaceholder {
+  text-align: center;
+  padding: 2rem;
+}
+
+.outputPlaceholder p {
+  color: #666;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.infoContainer {
+  margin-top: 1rem;
+}
+
+.infoBox {
+  background: #9cab84;
+  border: 3px solid #1a1a1a;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.infoBox strong {
+  display: block;
+  color: white;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.infoBox p {
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* Upload Panel - Below the dual panels */
+.uploadPanel {
+  background: white;
+  border: 6px solid #1a1a1a;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.15);
+}
+
+.uploadPanel h2 {
+  font-size: 1.8rem;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 4px solid #9cab84;
+}
+
+.successMessage {
+  background: #9cab84;
+  color: white;
+  padding: 1rem;
+  border: 4px solid #1a1a1a;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.errorMessage {
+  background: #fdacac;
+  color: #1a1a1a;
+  padding: 1rem;
+  border: 4px solid #1a1a1a;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.uploadGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.uploadBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.uploadBox label {
+  font-weight: bold;
+  color: #1a1a1a;
+  font-size: 1rem;
+}
+
+.uploadInput,
+.uploadSelect {
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 3px solid #1a1a1a;
+  border-radius: 0.5rem;
+  background: white;
+  color: #1a1a1a;
+}
+
+.uploadInput:focus,
+.uploadSelect:focus {
+  outline: none;
+  border-color: #9cab84;
+  box-shadow: 0 0 0 3px rgba(156, 171, 132, 0.2);
+}
+
+.uploadBtn {
+  padding: 0.75rem;
+  background: #fdacac;
+  color: #1a1a1a;
+  border: 4px solid #1a1a1a;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.2s;
+}
+
+.uploadBtn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.saveTriggerBtn {
+  padding: 1rem;
+  background: #9cab84;
+  color: white;
+  border: 5px solid #1a1a1a;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+  transition: all 0.2s;
+}
+
+.saveTriggerBtn:hover {
+  transform: translate(3px, 3px);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.saveTriggerBtn:active {
+  transform: translate(6px, 6px);
+  box-shadow: none;
+}
+
+.triggerInfo {
+  text-align: center;
+  color: #666;
+  font-size: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px solid #f6f0d7;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .content {
     grid-template-columns: 1fr;
   }
   
-  .formButtons {
-    flex-direction: column;
+  .uploadGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .triggersGrid {
+}
+
+@media (max-width: 768px) {
+  .uploadGrid {
     grid-template-columns: 1fr;
   }
 }
