@@ -1,0 +1,104 @@
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║              🤚 HAND TRACKING WEB - QUICK START 🤚            ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+
+📋 LANGKAH CEPAT MENJALANKAN PROJECT:
+
+1️⃣  Buka Terminal/PowerShell
+
+2️⃣  Masuk ke folder project:
+    cd "d:\SEMESTER 5\Cloud Computing\Minggu 10\hand-tracking-web"
+
+3️⃣  Jalankan server:
+    npm run dev
+
+4️⃣  Buka browser:
+    http://localhost:3000
+
+5️⃣  Klik "Mulai Hand Tracking" dan allow camera access
+
+═══════════════════════════════════════════════════════════════
+
+✨ FITUR UTAMA:
+
+✅ Real-time hand tracking (sampai 2 tangan)
+✅ Gesture recognition (5 jenis gesture)
+✅ Visualisasi landmark tangan
+✅ Browser-based (tidak perlu install)
+✅ Design monochrome (no gradient!)
+
+═══════════════════════════════════════════════════════════════
+
+🎯 GESTURE YANG DIDETEKSI:
+
+✊ Fist         - Semua jari tertutup
+☝️  Pointing     - Jari telunjuk terangkat
+✌️  Peace Sign   - 2 jari (V shape)
+🤟 Three Fingers - 3 jari terangkat
+✋ Open Hand    - Semua jari terbuka
+
+═══════════════════════════════════════════════════════════════
+
+🛠️ TEKNOLOGI:
+
+• Next.js 14 + React 18
+• TypeScript
+• MediaPipe AI (Google)
+• React Webcam
+
+═══════════════════════════════════════════════════════════════
+
+🌐 DEPLOYMENT GRATIS:
+
+1. Push ke GitHub
+2. Deploy di Vercel (vercel.com)
+3. Gratis selamanya!
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ REQUIREMENTS:
+
+✅ Node.js installed
+✅ Webcam tersedia
+✅ Browser modern (Chrome recommended)
+✅ Internet (untuk load MediaPipe models)
+
+═══════════════════════════════════════════════════════════════
+
+🆘 TROUBLESHOOTING:
+
+Port 3000 dipakai?
+→ npm run dev -- -p 3001
+
+Kamera tidak terdeteksi?
+→ Check browser permissions
+
+Build error?
+→ npm install
+
+═══════════════════════════════════════════════════════════════
+
+📌 HALAMAN YANG TERSEDIA:
+
+/               → Homepage (Landing page)
+/hand-tracking  → Hand tracking real-time
+/gestures       → Daftar gesture
+
+═══════════════════════════════════════════════════════════════
+
+💡 TIPS:
+
+• Gunakan pencahayaan yang baik
+• Posisikan tangan di depan kamera
+• Jarak ideal: 30-60 cm dari kamera
+• Background solid lebih baik
+
+═══════════════════════════════════════════════════════════════
+
+✅ PROJECT SUDAH SIAP DIGUNAKAN!
+
+Server running di: http://localhost:3000
+
+═══════════════════════════════════════════════════════════════

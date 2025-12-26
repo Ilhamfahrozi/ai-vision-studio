@@ -1,0 +1,698 @@
+import { useRef, useEffect, useState } from 'react'
+import Head from 'next/head'
+import Link from 'next/link'
+import Webcam from 'react-webcam'
+import styles from '@/styles/Free.module.css'
+
+// Dynamic import to avoid SSR issues
+let Hands: any
+let FaceMesh: any
+let Camera: any
+let drawConnectors: any
+let drawLandmarks: any
+let HAND_CONNECTIONS: any
+
+if (typeof window !== 'undefined') {
+  import('@mediapipe/hands').then(module => {
+    Hands = module.Hands
+    HAND_CONNECTIONS = module.HAND_CONNECTIONS
+  })
+  import('@mediapipe/face_mesh').then(module => {
+    FaceMesh = module.FaceMesh
+  })
+  import('@mediapipe/camera_utils').then(module => {
+    Camera = module.Camera
+  })
+  import('@mediapipe/drawing_utils').then(module => {
+    drawConnectors = module.drawConnectors
+    drawLandmarks = module.drawLandmarks
+  })
+}
+
+// Output combinations: Emotion + Gesture → Image + Audio
+const OUTPUT_MAP: Record<string, { image: string; audio: string }> = {
+  // Happy - Solo (tanpa gesture)
+  'Happy': { image: '/outputs/happy.jpg', audio: '/outputs/happy.mp3' },
+  
+  // Happy combinations
+  'Happy-Thumbs Up': { image: '/outputs/happy-thumbs.jpg', audio: '/outputs/happy-thumbs.mp3' },
+  'Happy-Peace': { image: '/outputs/happy-peace.jpg', audio: '/outputs/happy-peace.mp3' },
+  'Happy-Open Hand': { image: '/outputs/happy-wave.jpg', audio: '/outputs/happy-wave.mp3' },
+  'Happy-Fist': { image: '/outputs/fist.png', audio: '/outputs/fist.mp3' },
+  'Happy-Pointing': { image: '/outputs/pointing.jpg', audio: '/outputs/pointing.mp3' },
+  'Happy-Three': { image: '/outputs/happy.jpg', audio: '/outputs/happy.mp3' },
+  
+  // Sad - Solo (tanpa gesture)
+  'Sad': { image: '/outputs/sad.jpg', audio: '/outputs/sad.mp3' },
+  
+  // Sad combinations
+  'Sad-Fist': { image: '/outputs/sad-fist.jpg', audio: '/outputs/sad-fist.mp3' },
+  'Sad-Peace': { image: '/outputs/sad-peace.jpg', audio: '/outputs/sad-peace.mp3' },
+  'Sad-Thumbs Up': { image: '/outputs/sad.jpg', audio: '/outputs/sad.mp3' },
+  'Sad-Open Hand': { image: '/outputs/sad.jpg', audio: '/outputs/sad.mp3' },
+  'Sad-Pointing': { image: '/outputs/pointing.jpg', audio: '/outputs/pointing.mp3' },
+  'Sad-Three': { image: '/outputs/sad.jpg', audio: '/outputs/sad.mp3' },
+  
+  // Angry - Solo (tanpa gesture)
+  'Angry': { image: '/outputs/angry.jpg', audio: '/outputs/angry.mp3' },
+  
+  // Angry combinations
+  'Angry-Fist': { image: '/outputs/angry-fist.jpg', audio: '/outputs/angry-fist.mp3' },
+  'Angry-Pointing': { image: '/outputs/angry-pointing.jpg', audio: '/outputs/angry-pointing.mp3' },
+  'Angry-Thumbs Up': { image: '/outputs/angry.jpg', audio: '/outputs/angry.mp3' },
+  'Angry-Peace': { image: '/outputs/angry.jpg', audio: '/outputs/angry.mp3' },
+  'Angry-Open Hand': { image: '/outputs/angry.jpg', audio: '/outputs/angry.mp3' },
+  'Angry-Three': { image: '/outputs/angry.jpg', audio: '/outputs/angry.mp3' },
+  
+  // Surprised - Solo (tanpa gesture)
+  'Surprised': { image: '/outputs/surprised.jpg', audio: '/outputs/surprised.mp3' },
+  
+  // Surprised combinations
+  'Surprised-Open Hand': { image: '/outputs/surprised-open.jpg', audio: '/outputs/surprised-open.mp3' },
+  'Surprised-Peace': { image: '/outputs/surprised-peace.jpg', audio: '/outputs/surprised-peace.mp3' },
+  'Surprised-Thumbs Up': { image: '/outputs/surprised.jpg', audio: '/outputs/surprised.mp3' },
+  'Surprised-Fist': { image: '/outputs/fist.jpg', audio: '/outputs/fist.mp3' },
+  'Surprised-Pointing': { image: '/outputs/pointing.jpg', audio: '/outputs/pointing.mp3' },
+  'Surprised-Three': { image: '/outputs/surprised.jpg', audio: '/outputs/surprised.mp3' },
+  
+  // Neutral - Solo (tanpa gesture)
+  'Neutral': { image: '/outputs/neutral.jpg', audio: '/outputs/neutral.mp3' },
+  
+  // Neutral combinations
+  'Neutral-Thumbs Up': { image: '/outputs/neutral-thumbs.jpg', audio: '/outputs/neutral-thumbs.mp3' },
+  'Neutral-Peace': { image: '/outputs/neutral-peace.jpg', audio: '/outputs/neutral-peace.mp3' },
+  'Neutral-Fist': { image: '/outputs/fist.jpg', audio: '/outputs/fist.mp3' },
+  'Neutral-Open Hand': { image: '/outputs/neutral.jpg', audio: '/outputs/neutral.mp3' },
+  'Neutral-Pointing': { image: '/outputs/pointing.jpg', audio: '/outputs/pointing.mp3' },
+  'Neutral-Three': { image: '/outputs/neutral.jpg', audio: '/outputs/neutral.mp3' },
+  
+  // Fear - Solo (tanpa gesture)
+  'Fear': { image: '/outputs/fear.jpg', audio: '/outputs/fear.mp3' },
+  
+  // Fear combinations (jika ada)
+  'Fear-Fist': { image: '/outputs/fist.jpg', audio: '/outputs/fist.mp3' },
+  'Fear-Open Hand': { image: '/outputs/fear.jpg', audio: '/outputs/fear.mp3' },
+  'Fear-Peace': { image: '/outputs/fear.jpg', audio: '/outputs/fear.mp3' },
+  'Fear-Thumbs Up': { image: '/outputs/fear.jpg', audio: '/outputs/fear.mp3' },
+  'Fear-Pointing': { image: '/outputs/pointing.jpg', audio: '/outputs/pointing.mp3' },
+  'Fear-Three': { image: '/outputs/fear.jpg', audio: '/outputs/fear.mp3' },
+  
+  // Disgust - Solo (tanpa gesture)
+  'Disgust': { image: '/outputs/disgust.jpg', audio: '/outputs/disgust.mp3' },
+  
+  // Disgust combinations (jika ada)
+  'Disgust-Fist': { image: '/outputs/fist.jpg', audio: '/outputs/fist.mp3' },
+  'Disgust-Open Hand': { image: '/outputs/disgust.jpg', audio: '/outputs/disgust.mp3' },
+  'Disgust-Peace': { image: '/outputs/disgust.jpg', audio: '/outputs/disgust.mp3' },
+  'Disgust-Thumbs Up': { image: '/outputs/disgust.jpg', audio: '/outputs/disgust.mp3' },
+  'Disgust-Pointing': { image: '/outputs/pointing.jpg', audio: '/outputs/pointing.mp3' },
+  'Disgust-Three': { image: '/outputs/disgust.jpg', audio: '/outputs/disgust.mp3' },
+}
+
+export default function Free() {
+  const webcamRef = useRef<Webcam>(null)
+  const canvasLeftRef = useRef<HTMLCanvasElement>(null)
+  const canvasRightRef = useRef<HTMLCanvasElement>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
+  
+  const [isActive, setIsActive] = useState(false)
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>('')
+  
+  const [currentEmotion, setCurrentEmotion] = useState<string>('None')
+  const [currentGesture, setCurrentGesture] = useState<string>('None')
+  const [outputImage, setOutputImage] = useState<string | null>(null)
+  const [outputAudio, setOutputAudio] = useState<string | null>(null)
+  const [handsCount, setHandsCount] = useState(0)
+
+  // Get available cameras
+  useEffect(() => {
+    const getCameras = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        const videoDevices = devices.filter(device => device.kind === 'videoinput')
+        setDevices(videoDevices)
+        if (videoDevices.length > 0 && !selectedDeviceId) {
+          setSelectedDeviceId(videoDevices[0].deviceId)
+        }
+      } catch (error) {
+        console.error('Error getting cameras:', error)
+      }
+    }
+    getCameras()
+  }, [])
+
+  // Detect emotion from face landmarks
+  const detectEmotion = (landmarks: any[]): string => {
+    if (!landmarks || landmarks.length < 468) return 'Neutral'
+    
+    const leftEyeUpper = landmarks[159]
+    const leftEyeLower = landmarks[145]
+    const rightEyeUpper = landmarks[386]
+    const rightEyeLower = landmarks[374]
+    const leftEyebrowInner = landmarks[107]
+    const rightEyebrowInner = landmarks[336]
+    const leftMouthCorner = landmarks[61]
+    const rightMouthCorner = landmarks[291]
+    const upperLip = landmarks[13]
+    const lowerLip = landmarks[14]
+    
+    // EAR & MAR calculation
+    const earLeft = Math.abs(leftEyeUpper.y - leftEyeLower.y) / Math.abs(landmarks[33].x - landmarks[133].x)
+    const earRight = Math.abs(rightEyeUpper.y - rightEyeLower.y) / Math.abs(landmarks[362].x - landmarks[263].x)
+    const avgEAR = (earLeft + earRight) / 2
+
+    const mouthHeight = Math.abs(upperLip.y - lowerLip.y)
+    const mouthWidth = Math.abs(leftMouthCorner.x - rightMouthCorner.x)
+    const MAR = mouthHeight / (mouthWidth + 0.001)
+
+    const smileRatio = upperLip.y - (leftMouthCorner.y + rightMouthCorner.y) / 2
+    const avgBrowRaise = ((leftEyeUpper.y - leftEyebrowInner.y) + (rightEyeUpper.y - rightEyebrowInner.y)) / 2
+    const browDistance = Math.abs(leftEyebrowInner.x - rightEyebrowInner.x)
+    
+    // Tongue detection
+    const tongueTip = landmarks[13]
+    const tongueOut = Math.abs(tongueTip.y - lowerLip.y)
+    
+    // Emotion detection - Intuitive logic
+    if (avgEAR > 0.22 && MAR > 0.45 && avgBrowRaise > 0.025) return 'Surprised'
+    else if (avgEAR > 0.24 && avgBrowRaise > 0.028 && MAR > 0.25 && MAR < 0.55) return 'Fear'
+    else if (avgEAR > 0.20 && MAR < 0.25 && smileRatio < 0.005) return 'Angry'
+    else if (avgEAR < 0.17) return 'Sad'
+    else if (smileRatio > 0.007 && MAR < 0.4) return 'Happy'
+    else if (MAR > 0.3 && tongueOut > 0.01) return 'Disgust'
+    else return 'Neutral'
+  }
+
+  // Detect gesture from hand landmarks
+  const detectGesture = (landmarks: any[]): string => {
+    const thumbTip = landmarks[4]
+    const indexTip = landmarks[8]
+    const middleTip = landmarks[12]
+    const ringTip = landmarks[16]
+    const pinkyTip = landmarks[20]
+    const wrist = landmarks[0]
+    const indexMCP = landmarks[5]
+    const middleMCP = landmarks[9]
+    
+    const distance = (p1: any, p2: any) => 
+      Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2)
+    
+    const allFingersClosed = 
+      distance(indexTip, wrist) < distance(indexMCP, wrist) &&
+      distance(middleTip, wrist) < distance(middleMCP, wrist) &&
+      distance(ringTip, wrist) < 0.15 &&
+      distance(pinkyTip, wrist) < 0.15
+    
+    if (allFingersClosed) return 'Fist'
+    
+    const indexUp = indexTip.y < indexMCP.y
+    const middleUp = middleTip.y < middleMCP.y
+    const ringDown = ringTip.y > landmarks[13].y
+    const pinkyDown = pinkyTip.y > landmarks[17].y
+    
+    if (indexUp && middleUp && ringDown && pinkyDown) return 'Peace'
+    
+    if (indexUp && !middleUp && ringDown && pinkyDown) return 'Pointing'
+    
+    const thumbUp = thumbTip.y < landmarks[2].y
+    const indexDown = indexTip.y > indexMCP.y
+    const middleDown = middleTip.y > middleMCP.y
+    
+    if (thumbUp && indexDown && middleDown && ringDown && pinkyDown) return 'Thumbs Up'
+    
+    const allFingersUp = indexUp && middleUp && 
+      ringTip.y < landmarks[13].y && 
+      pinkyTip.y < landmarks[17].y
+    
+    if (allFingersUp) return 'Open Hand'
+    
+    return 'None'
+  }
+
+  // Update output based on emotion + gesture combination
+  useEffect(() => {
+    // Jika tidak ada emotion, clear output
+    if (currentEmotion === 'None') {
+      setOutputImage(null)
+      setOutputAudio(null)
+      // Clear right canvas
+      if (canvasRightRef.current) {
+        const ctx = canvasRightRef.current.getContext('2d')
+        if (ctx) {
+          ctx.fillStyle = '#000000'
+          ctx.fillRect(0, 0, canvasRightRef.current.width, canvasRightRef.current.height)
+        }
+      }
+      return
+    }
+
+    // Buat kombinasi, jika gesture None maka pakai emotion saja
+    const combination = currentGesture === 'None' 
+      ? currentEmotion 
+      : `${currentEmotion}-${currentGesture}`
+    
+    const output = OUTPUT_MAP[combination]
+
+    if (output) {
+      setOutputImage(output.image)
+      setOutputAudio(output.audio)
+      
+      // Load and display image
+      const img = new Image()
+      img.onload = () => {
+        if (canvasRightRef.current) {
+          const canvas = canvasRightRef.current
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          }
+        }
+      }
+      img.onerror = () => {
+        // If image not found, show black screen
+        if (canvasRightRef.current) {
+          const ctx = canvasRightRef.current.getContext('2d')
+          if (ctx) {
+            ctx.fillStyle = '#000000'
+            ctx.fillRect(0, 0, canvasRightRef.current.width, canvasRightRef.current.height)
+          }
+        }
+      }
+      img.src = output.image
+      
+      // Play audio
+      if (audioRef.current) {
+        audioRef.current.src = output.audio
+        audioRef.current.play().catch(err => {
+          console.log('Audio play failed:', err)
+        })
+      }
+    } else {
+      setOutputImage(null)
+      setOutputAudio(null)
+      // Black screen if no match
+      if (canvasRightRef.current) {
+        const ctx = canvasRightRef.current.getContext('2d')
+        if (ctx) {
+          ctx.fillStyle = '#000000'
+          ctx.fillRect(0, 0, canvasRightRef.current.width, canvasRightRef.current.height)
+        }
+      }
+    }
+  }, [currentEmotion, currentGesture])
+
+  // MediaPipe setup
+  useEffect(() => {
+    if (!isActive || !selectedDeviceId) return
+    
+    // Wait for MediaPipe modules to load
+    const checkModules = setInterval(() => {
+      if (Hands && FaceMesh && drawConnectors && drawLandmarks && HAND_CONNECTIONS) {
+        clearInterval(checkModules)
+        console.log('✅ All MediaPipe modules loaded')
+      }
+    }, 100)
+
+    let handsInstance: any = null
+    let faceMeshInstance: any = null
+    let animationFrameId: number | null = null
+    let isMounted = true
+
+    const init = async () => {
+      // Wait for modules to be available
+      while (!Hands || !FaceMesh || !drawConnectors || !drawLandmarks) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+
+      console.log('🚀 Initializing MediaPipe...')
+
+      // Initialize Hands
+      handsInstance = new Hands({
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      })
+      
+      handsInstance.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.3
+      })
+
+      // Initialize FaceMesh
+      faceMeshInstance = new FaceMesh({
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+      })
+      
+      faceMeshInstance.setOptions({
+        maxNumFaces: 1,
+        refineLandmarks: true,
+        minDetectionConfidence: 0.3,
+        minTrackingConfidence: 0.3
+      })
+
+      console.log('✅ MediaPipe instances created')
+      console.log('✅ MediaPipe instances created')
+
+      let handResults: any = null
+      let faceResults: any = null
+      let isProcessing = false
+
+      handsInstance.onResults((results: any) => {
+        handResults = results
+        console.log('Hand results received:', handResults?.multiHandLandmarks?.length || 0)
+      })
+
+      faceMeshInstance.onResults((results: any) => {
+        faceResults = results
+        console.log('Face results received:', faceResults?.multiFaceLandmarks?.length || 0)
+      })
+
+      const processFrame = async () => {
+        if (!webcamRef.current?.video || !isMounted) {
+          if (isMounted) {
+            animationFrameId = requestAnimationFrame(processFrame)
+          }
+          return
+        }
+
+        const video = webcamRef.current.video
+        
+        // Check if video is ready
+        if (video.readyState !== 4) {
+          if (isMounted) {
+            animationFrameId = requestAnimationFrame(processFrame)
+          }
+          return
+        }
+
+        if (isProcessing) {
+          if (isMounted) {
+            animationFrameId = requestAnimationFrame(processFrame)
+          }
+          return
+        }
+
+        isProcessing = true
+
+        try {
+          // Process with hands first
+          if (handsInstance) {
+            await handsInstance.send({ image: video })
+          }
+          
+          // Small delay to prevent conflicts
+          await new Promise(resolve => setTimeout(resolve, 10))
+          
+          // Process with face mesh
+          if (faceMeshInstance) {
+            await faceMeshInstance.send({ image: video })
+          }
+
+          // Draw results
+          drawResults(handResults, faceResults)
+        } catch (error) {
+          console.error('Processing error:', error)
+        }
+
+        isProcessing = false
+        if (isMounted) {
+          animationFrameId = requestAnimationFrame(processFrame)
+        }
+      }
+
+      const drawResults = (handResults: any, faceResults: any) => {
+        if (!canvasLeftRef.current || !webcamRef.current?.video) return
+
+        const canvas = canvasLeftRef.current
+        const video = webcamRef.current.video
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+
+        // Ensure canvas size matches video
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+        }
+
+        ctx.save()
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        // Mirror the canvas
+        ctx.translate(canvas.width, 0)
+        ctx.scale(-1, 1)
+
+        // Draw video feed
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+        let detectedEmotion = 'None'
+        let detectedGesture = 'None'
+        let handsDetected = 0
+
+        // Draw face and detect emotion
+        if (faceResults?.multiFaceLandmarks && faceResults.multiFaceLandmarks.length > 0) {
+          const landmarks = faceResults.multiFaceLandmarks[0]
+          detectedEmotion = detectEmotion(landmarks)
+          
+          // Draw face box
+          const xCoords = landmarks.map((l: any) => l.x)
+          const yCoords = landmarks.map((l: any) => l.y)
+          const minX = Math.min(...xCoords) * canvas.width
+          const maxX = Math.max(...xCoords) * canvas.width
+          const minY = Math.min(...yCoords) * canvas.height
+          const maxY = Math.max(...yCoords) * canvas.height
+
+          ctx.strokeStyle = '#00FF00'
+          ctx.lineWidth = 3
+          ctx.strokeRect(minX, minY, maxX - minX, maxY - minY)
+        }
+
+        // Draw hands and detect gesture
+        if (handResults?.multiHandLandmarks && handResults.multiHandLandmarks.length > 0) {
+          handsDetected = handResults.multiHandLandmarks.length
+          
+          for (let i = 0; i < handResults.multiHandLandmarks.length; i++) {
+            const landmarks = handResults.multiHandLandmarks[i]
+            
+            if (i === 0) {
+              detectedGesture = detectGesture(landmarks)
+            }
+
+            if (drawConnectors && drawLandmarks && HAND_CONNECTIONS) {
+              drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: '#00FFFF', lineWidth: 2 })
+              drawLandmarks(ctx, landmarks, { color: '#FF00FF', lineWidth: 1, radius: 3 })
+            }
+          }
+        }
+
+        // Update states
+        setCurrentEmotion(detectedEmotion)
+        setCurrentGesture(detectedGesture)
+        setHandsCount(handsDetected)
+
+        // Draw text (unflipped)
+        ctx.save()
+        ctx.scale(-1, 1)
+        ctx.fillStyle = '#FFFFFF'
+        ctx.font = 'bold 24px Arial'
+        ctx.strokeStyle = '#000000'
+        ctx.lineWidth = 3
+        
+        let yPos = 40
+        ctx.strokeText(`Emotion: ${detectedEmotion}`, -canvas.width + 20, yPos)
+        ctx.fillText(`Emotion: ${detectedEmotion}`, -canvas.width + 20, yPos)
+        
+        yPos += 40
+        ctx.strokeText(`Gesture: ${detectedGesture}`, -canvas.width + 20, yPos)
+        ctx.fillText(`Gesture: ${detectedGesture}`, -canvas.width + 20, yPos)
+        
+        yPos += 40
+        ctx.strokeText(`Hands: ${handsDetected}`, -canvas.width + 20, yPos)
+        ctx.fillText(`Hands: ${handsDetected}`, -canvas.width + 20, yPos)
+        
+        ctx.restore()
+        ctx.restore()
+      }
+
+      // Start processing
+      console.log('🎬 Starting frame processing...')
+      
+      // Wait a bit for webcam to be ready
+      setTimeout(() => {
+        if (isMounted && webcamRef.current?.video) {
+          console.log('▶️ Video ready, starting loop')
+          processFrame()
+        }
+      }, 500)
+    }
+
+    init().catch(err => {
+      console.error('❌ Init error:', err)
+    })
+
+    return () => {
+      console.log('🛑 Cleaning up MediaPipe...')
+      isMounted = false
+      
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId)
+        animationFrameId = null
+      }
+      
+      // Cleanup with try-catch to prevent errors
+      setTimeout(() => {
+        try {
+          if (handsInstance) {
+            handsInstance.close()
+            handsInstance = null
+          }
+        } catch (e) {
+          console.log('Hands cleanup error:', e)
+        }
+        
+        try {
+          if (faceMeshInstance) {
+            faceMeshInstance.close()
+            faceMeshInstance = null
+          }
+        } catch (e) {
+          console.log('FaceMesh cleanup error:', e)
+        }
+      }, 100)
+    }
+  }, [isActive, selectedDeviceId])
+
+  return (
+    <>
+      <Head>
+        <title>Free - AI Vision Studio</title>
+      </Head>
+
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <Link href="/" className={styles.backButton}>
+            ← Kembali
+          </Link>
+          <h1>Free Detection</h1>
+        </div>
+
+        <div className={styles.content}>
+          {/* LEFT PANEL - Camera Input */}
+          <div className={styles.panel}>
+            <h2 className={styles.panelTitle}>CAMERA INPUT</h2>
+            
+            <div className={styles.cameraContainer}>
+              <div className={styles.cameraSelection}>
+                <label>Pilih Kamera:</label>
+                <select 
+                  value={selectedDeviceId} 
+                  onChange={(e) => setSelectedDeviceId(e.target.value)}
+                  className={styles.cameraSelect}
+                >
+                  {devices.map((device, index) => (
+                    <option key={device.deviceId} value={device.deviceId}>
+                      {device.label || `Camera ${index + 1}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.videoWrapper}>
+                <Webcam
+                  ref={webcamRef}
+                  audio={false}
+                  videoConstraints={{ 
+                    deviceId: selectedDeviceId,
+                    width: 640,
+                    height: 480
+                  }}
+                  className={styles.webcam}
+                  style={{ display: isActive ? 'block' : 'none' }}
+                  onUserMedia={() => console.log('📹 Webcam ready!')}
+                  onUserMediaError={(err) => console.error('❌ Webcam error:', err)}
+                />
+                {isActive && (
+                  <canvas
+                    ref={canvasLeftRef}
+                    width={640}
+                    height={480}
+                    className={styles.canvas}
+                  />
+                )}
+                {!isActive && (
+                  <div className={styles.placeholder}>
+                    Klik Start untuk memulai deteksi
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.controls}>
+              <button 
+                onClick={() => setIsActive(true)} 
+                disabled={isActive}
+                className={styles.btnStart}
+              >
+                START CAMERA
+              </button>
+              <button 
+                onClick={() => setIsActive(false)} 
+                disabled={!isActive}
+                className={styles.btnStop}
+              >
+                STOP CAMERA
+              </button>
+            </div>
+
+            <div className={styles.stats}>
+              <div className={styles.stat}>Hands: {handsCount}</div>
+              <div className={styles.stat}>Emotion: {currentEmotion}</div>
+              <div className={styles.stat}>Gesture: {currentGesture}</div>
+            </div>
+          </div>
+
+          {/* RIGHT PANEL - Output Display */}
+          <div className={styles.panel}>
+            <h2 className={styles.panelTitle}>OUTPUT DISPLAY</h2>
+            
+            <div className={styles.outputWrapper}>
+              <canvas
+                ref={canvasRightRef}
+                width={640}
+                height={480}
+                className={styles.outputCanvas}
+              />
+              {!outputImage && (
+                <div className={styles.placeholder}>
+                  Kombinasi ekspresi + gesture akan muncul di sini
+                </div>
+              )}
+            </div>
+
+            <div className={styles.outputInfo}>
+              <div className={styles.infoBox}>
+                <strong>Kombinasi Terdeteksi:</strong>
+                <p>{currentEmotion} + {currentGesture}</p>
+              </div>
+              {outputImage && (
+                <div className={styles.infoBox}>
+                  <strong>Output:</strong>
+                  <p>GAMBAR & AUDIO AKTIF</p>
+                </div>
+              )}
+              {!outputImage && currentEmotion !== 'None' && currentGesture !== 'None' && (
+                <div className={styles.infoBox}>
+                  <strong>Status:</strong>
+                  <p>TIDAK ADA OUTPUT UNTUK KOMBINASI INI</p>
+                </div>
+              )}
+            </div>
+
+            <audio ref={audioRef} style={{ display: 'none' }} />
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}

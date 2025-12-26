@@ -1,0 +1,203 @@
+/* GESTURES PAGE - SOLID COLORS ONLY */
+.container {
+  min-height: 100vh;
+  background-color: #ffffff;
+  padding: 20px;
+}
+
+.header {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #000000;
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: #000000;
+  color: #ffffff;
+  font-weight: 600;
+  border: 2px solid #000000;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* INTRO */
+.intro {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.intro h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #000000;
+  margin-bottom: 16px;
+}
+
+.intro p {
+  font-size: 18px;
+  color: #404040;
+}
+
+/* GESTURE GRID */
+.gestureGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 80px;
+}
+
+.gestureCard {
+  background-color: #f5f5f5;
+  border: 2px solid #000000;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.gestureCard:hover {
+  background-color: #000000;
+  color: #ffffff;
+  transform: translateY(-4px);
+}
+
+.gestureCard:hover .gestureIcon {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.gestureIcon {
+  width: 80px;
+  height: 80px;
+  background-color: #000000;
+  color: #ffffff;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.gestureCard h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: inherit;
+}
+
+.description {
+  font-size: 14px;
+  color: inherit;
+  opacity: 0.8;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.usage {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 16px;
+  border-top: 1px solid currentColor;
+  opacity: 0.6;
+}
+
+.usageLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.usage span:last-child {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* CTA SECTION */
+.cta {
+  text-align: center;
+  padding: 60px 40px;
+  background-color: #000000;
+  color: #ffffff;
+}
+
+.cta h3 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.cta p {
+  font-size: 16px;
+  margin-bottom: 32px;
+  opacity: 0.8;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  background-color: #ffffff;
+  color: #000000;
+  border: 2px solid #ffffff;
+  transition: all 0.2s ease;
+}
+
+.btnPrimary:hover {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .intro h2 {
+    font-size: 28px;
+  }
+
+  .intro p {
+    font-size: 16px;
+  }
+
+  .gestureGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta h3 {
+    font-size: 24px;
+  }
+}
