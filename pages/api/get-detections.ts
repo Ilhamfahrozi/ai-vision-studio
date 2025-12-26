@@ -12,8 +12,9 @@ export default async function handler(
 
   try {
     const limitCount = parseInt(req.query.limit as string) || 20;
+    const userId = req.query.userId as string | undefined;
 
-    const result = await getRecentDetections(limitCount);
+    const result = await getRecentDetections(limitCount, userId);
 
     if (result.success) {
       return res.status(200).json({ 

@@ -22,6 +22,7 @@ export interface DetectionData {
   type: 'face' | 'expression' | 'gesture' | 'pose' | 'hand';
   result: string; // e.g., "happy", "sad", "pointing", etc.
   confidence?: number;
+  userId?: string; // Add user ID for tracking
   timestamp: Timestamp | ReturnType<typeof serverTimestamp>;
   metadata?: {
     detectionCount?: number;
@@ -47,13 +48,22 @@ export const saveDetection = async (data: Omit<DetectionData, 'timestamp'>) => {
 };
 
 // Get recent detections
-export const getRecentDetections = async (limitCount: number = 10) => {
+export const getRecentDetections = async (limitCount: number = 10, userId?: string) => {
   try {
-    const q = query(
+    let q = query(
       collection(db, COLLECTIONS.DETECTIONS),
       orderBy('timestamp', 'desc'),
       limit(limitCount)
     );
+    
+    // If userId provided, filter by user
+    if (userId) {
+      q = query(
+        collection(db, COLLECTIONS.DETECTIONS),
+        orderBy('timestamp', 'desc'),
+        limit(limitCount)
+      );
+    }
     
     const querySnapshot = await getDocs(q);
     const detections = querySnapshot.docs.map(doc => ({
@@ -61,7 +71,12 @@ export const getRecentDetections = async (limitCount: number = 10) => {
       ...doc.data()
     }));
     
-    return { success: true, data: detections };
+    // Filter by userId in client side if needed (Firestore limitation without composite index)
+    const filteredDetections = userId 
+      ? detections.filter((d: any) => d.userId === userId)
+      : detections;
+    
+    return { success: true, data: filteredDetections };
   } catch (error) {
     console.error('Error fetching detections:', error);
     return { success: false, error };

@@ -1,8 +1,11 @@
 import Head from 'next/head'
 import Link from 'next/link'
+import { useAuth } from '@/lib/AuthContext'
 import styles from '@/styles/Home.module.css'
 
 export default function Home() {
+  const { user } = useAuth()
+  
   const features = [
     {
       title: 'Hand Tracking',
@@ -40,6 +43,27 @@ export default function Home() {
 
       <main className={styles.main}>
         <div className={styles.container}>
+          {/* Auth Navigation */}
+          <div className={styles.authNav}>
+            {user ? (
+              <Link href="/profile" className={styles.profileLink}>
+                <span className={styles.profileIcon}>
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="Profile" />
+                  ) : (
+                    (user.displayName || user.email || 'U')[0].toUpperCase()
+                  )}
+                </span>
+                <span>{user.displayName || 'Profile'}</span>
+              </Link>
+            ) : (
+              <div className={styles.authButtons}>
+                <Link href="/login" className={styles.loginButton}>Login</Link>
+                <Link href="/register" className={styles.registerButton}>Sign Up</Link>
+              </div>
+            )}
+          </div>
+
           <header className={styles.hero}>
             <h1 className={styles.title}>AI Vision Studio</h1>
             <p className={styles.subtitle}>Real-time Computer Vision menggunakan MediaPipe AI</p>

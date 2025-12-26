@@ -5,10 +5,11 @@ import Webcam from 'react-webcam'
 import { FaceMesh, Results } from '@mediapipe/face_mesh'
 import { Camera } from '@mediapipe/camera_utils'
 import * as faceapi from 'face-api.js'
+import { useAuth } from '@/lib/AuthContext'
 import styles from '@/styles/FacialExpression.module.css'
 
 // Helper function to save detection to Firebase
-async function saveToFirebase(emotion: string, confidence: number, metadata?: any) {
+async function saveToFirebase(emotion: string, confidence: number, userId: string | undefined, metadata?: any) {
   try {
     const response = await fetch('/api/save-detection', {
       method: 'POST',
@@ -17,6 +18,7 @@ async function saveToFirebase(emotion: string, confidence: number, metadata?: an
         type: 'expression',
         result: emotion,
         confidence: confidence,
+        userId: userId, // Include userId
         metadata: metadata
       })
     })
@@ -30,6 +32,7 @@ async function saveToFirebase(emotion: string, confidence: number, metadata?: an
 }
 
 export default function FacialExpression() {
+  const { user } = useAuth()
   const webcamRef = useRef<Webcam>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isActive, setIsActive] = useState(false)
@@ -406,7 +409,7 @@ export default function FacialExpression() {
           
           // Save to Firebase when emotion changes (for first person only)
           if (emotionChanged && conf > 70) {
-            saveToFirebase(detectedEmotion, conf, {
+            saveToFirebase(detectedEmotion, conf, user?.uid, {
               age: personData.age,
               gender: personData.gender,
               faceIndex: i

@@ -11,7 +11,7 @@ export default async function handler(
   }
 
   try {
-    const { type, result, confidence, metadata } = req.body;
+    const { type, result, confidence, metadata, userId } = req.body;
 
     // Validate required fields
     if (!type || !result) {
@@ -23,6 +23,7 @@ export default async function handler(
       type,
       result,
       confidence,
+      userId, // Include userId
       metadata
     });
 

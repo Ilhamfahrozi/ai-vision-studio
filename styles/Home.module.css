@@ -26,6 +26,88 @@
   z-index: 1;
 }
 
+/* AUTH NAVIGATION */
+.authNav {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+}
+
+.authButtons {
+  display: flex;
+  gap: 1rem;
+}
+
+.loginButton,
+.registerButton {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+  border: 2px solid var(--color-gray-900);
+}
+
+.loginButton {
+  background: white;
+  color: var(--color-gray-900);
+}
+
+.loginButton:hover {
+  background: var(--color-sage);
+  transform: translateY(-2px);
+}
+
+.registerButton {
+  background: var(--color-coral);
+  color: white;
+}
+
+.registerButton:hover {
+  background: #ff6b6b;
+  transform: translateY(-2px);
+}
+
+.profileLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 2px solid var(--color-gray-900);
+  border-radius: 50px;
+  text-decoration: none;
+  color: var(--color-gray-900);
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.profileLink:hover {
+  background: var(--color-sage);
+  transform: translateY(-2px);
+}
+
+.profileIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+.profileIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 /* HERO SECTION */
 .hero {
   text-align: center;
