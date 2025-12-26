@@ -2,14 +2,38 @@ import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Webcam from 'react-webcam'
-import { Hands } from '@mediapipe/hands'
-import { FaceMesh } from '@mediapipe/face_mesh'
-import { Pose } from '@mediapipe/pose'
-import { Camera } from '@mediapipe/camera_utils'
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
-import { HAND_CONNECTIONS } from '@mediapipe/hands'
-import { POSE_CONNECTIONS } from '@mediapipe/pose'
 import styles from '@/styles/AllInOne.module.css'
+
+// Dynamic import to avoid SSR issues
+let Hands: any
+let FaceMesh: any
+let Pose: any
+let Camera: any
+let drawConnectors: any
+let drawLandmarks: any
+let HAND_CONNECTIONS: any
+let POSE_CONNECTIONS: any
+
+if (typeof window !== 'undefined') {
+  import('@mediapipe/hands').then(module => {
+    Hands = module.Hands
+    HAND_CONNECTIONS = module.HAND_CONNECTIONS
+  })
+  import('@mediapipe/face_mesh').then(module => {
+    FaceMesh = module.FaceMesh
+  })
+  import('@mediapipe/pose').then(module => {
+    Pose = module.Pose
+    POSE_CONNECTIONS = module.POSE_CONNECTIONS
+  })
+  import('@mediapipe/camera_utils').then(module => {
+    Camera = module.Camera
+  })
+  import('@mediapipe/drawing_utils').then(module => {
+    drawConnectors = module.drawConnectors
+    drawLandmarks = module.drawLandmarks
+  })
+}
 
 export default function AllInOne() {
   const webcamRef = useRef<Webcam>(null)
