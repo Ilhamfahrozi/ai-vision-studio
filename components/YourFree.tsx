@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
+import Webcam from 'react-webcam'
 import styles from '@/styles/YourFree.module.css'
 import { useAuth } from '@/lib/AuthContext'
 import { db } from '@/lib/firebase'
@@ -56,6 +57,10 @@ export default function YourFree({ onBack }: YourFreeProps) {
   const [imagePreview, setImagePreview] = useState('')
   const [audioPreview, setAudioPreview] = useState('')
   
+  // Webcam mode
+  const [useWebcam, setUseWebcam] = useState(false)
+  const webcamRef = useRef<Webcam>(null)
+  
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   
@@ -109,8 +114,27 @@ export default function YourFree({ onBack }: YourFreeProps) {
       const base64 = reader.result as string
       setImageBase64(base64)
       setImagePreview(base64)
+      setError('')
     }
     reader.readAsDataURL(file)
+  }
+  
+  const captureFromWebcam = () => {
+    if (!webcamRef.current) {
+      setError('Webcam not ready')
+      return
+    }
+    
+    const imageSrc = webcamRef.current.getScreenshot()
+    if (imageSrc) {
+      setImageBase64(imageSrc)
+      setImagePreview(imageSrc)
+      setUseWebcam(false)
+      setError('')
+      console.log('✅ Image captured from webcam')
+    } else {
+      setError('Failed to capture image')
+    }
   }
 
   const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,6 +156,7 @@ export default function YourFree({ onBack }: YourFreeProps) {
       const base64 = reader.result as string
       setAudioBase64(base64)
       setAudioPreview(base64)
+      setError('')
     }
     reader.readAsDataURL(file)
   }
@@ -153,13 +178,21 @@ export default function YourFree({ onBack }: YourFreeProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('🔍 Form submitted')
+    console.log('User:', user?.uid)
+    console.log('Name:', name)
+    console.log('Image:', imageBase64 ? 'Present' : 'Missing')
+    console.log('Audio:', audioBase64 ? 'Present' : 'Missing')
+    
     if (!user) {
       setError('You must be logged in')
+      console.error('❌ No user logged in')
       return
     }
     
     if (!name || !imageBase64 || !audioBase64) {
       setError('Please fill all fields and upload both image and audio')
+      console.error('❌ Missing fields:', { name: !!name, image: !!imageBase64, audio: !!audioBase64 })
       return
     }
     
@@ -174,22 +207,26 @@ export default function YourFree({ onBack }: YourFreeProps) {
         createdAt: new Date()
       }
       
+      console.log('💾 Saving to Firestore...')
+      
       if (editingId) {
         // Update existing
         await updateDoc(doc(db, 'customTriggers', editingId), triggerData)
         setMessage('✅ Custom trigger updated successfully!')
+        console.log('✅ Updated trigger:', editingId)
       } else {
         // Create new
-        await addDoc(collection(db, 'customTriggers'), triggerData)
+        const docRef = await addDoc(collection(db, 'customTriggers'), triggerData)
         setMessage('✅ Custom trigger created successfully!')
+        console.log('✅ Created trigger:', docRef.id)
       }
       
       await fetchTriggers()
       resetForm()
       setTimeout(() => setMessage(''), 3000)
-    } catch (err) {
-      console.error('Error saving trigger:', err)
-      setError('Failed to save custom trigger')
+    } catch (err: any) {
+      console.error('❌ Error saving trigger:', err)
+      setError(`Failed to save: ${err.message || 'Unknown error'}`)
     }
   }
 
@@ -269,7 +306,25 @@ export default function YourFree({ onBack }: YourFreeProps) {
 
                 <div className={styles.uploadSection}>
                   <div className={styles.uploadGroup}>
-                    <label>Upload Image (JPG, PNG)</label>
+                    <label>Image Source</label>
+                    
+                    <div className={styles.imageSourceButtons}>
+                      <button
+                        type="button"
+                        onClick={() => setUseWebcam(!useWebcam)}
+                        className={useWebcam ? styles.sourceButtonActive : styles.sourceButton}
+                      >
+                        📹 {useWebcam ? 'Using Webcam' : 'Use Webcam'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setUseWebcam(false); imageInputRef.current?.click(); }}
+                        className={!useWebcam && imagePreview ? styles.sourceButtonActive : styles.sourceButton}
+                      >
+                        📁 Upload File
+                      </button>
+                    </div>
+                    
                     <input
                       ref={imageInputRef}
                       type="file"
@@ -277,16 +332,35 @@ export default function YourFree({ onBack }: YourFreeProps) {
                       onChange={handleImageChange}
                       style={{ display: 'none' }}
                     />
-                    <button
-                      type="button"
-                      onClick={() => imageInputRef.current?.click()}
-                      className={styles.uploadButton}
-                    >
-                      {imagePreview ? 'Change Image' : 'Choose Image'}
-                    </button>
+                    
+                    {useWebcam && !imagePreview && (
+                      <div className={styles.webcamContainer}>
+                        <Webcam
+                          ref={webcamRef}
+                          audio={false}
+                          screenshotFormat="image/jpeg"
+                          className={styles.webcam}
+                        />
+                        <button
+                          type="button"
+                          onClick={captureFromWebcam}
+                          className={styles.captureButton}
+                        >
+                          📸 Capture Photo
+                        </button>
+                      </div>
+                    )}
+                    
                     {imagePreview && (
                       <div className={styles.preview}>
                         <img src={imagePreview} alt="Preview" />
+                        <button
+                          type="button"
+                          onClick={() => { setImagePreview(''); setImageBase64(''); setUseWebcam(false); }}
+                          className={styles.removeButton}
+                        >
+                          ✕ Remove
+                        </button>
                       </div>
                     )}
                   </div>
