@@ -2,9 +2,20 @@ import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Webcam from 'react-webcam'
-import { FaceMesh, Results } from '@mediapipe/face_mesh'
-import { Camera } from '@mediapipe/camera_utils'
 import styles from '@/styles/FaceDetection.module.css'
+
+// Dynamic import to avoid SSR issues
+let FaceMesh: any
+let Camera: any
+
+if (typeof window !== 'undefined') {
+  import('@mediapipe/face_mesh').then(module => {
+    FaceMesh = module.FaceMesh
+  })
+  import('@mediapipe/camera_utils').then(module => {
+    Camera = module.Camera
+  })
+}
 
 export default function FaceDetection() {
   const webcamRef = useRef<Webcam>(null)
@@ -67,7 +78,7 @@ export default function FaceDetection() {
     }
   }, [isActive, selectedDeviceId])
 
-  function onResults(results: Results) {
+  function onResults(results: any) {
     if (!canvasRef.current) return
 
     const canvas = canvasRef.current
@@ -89,8 +100,8 @@ export default function FaceDetection() {
 
       for (const landmarks of results.multiFaceLandmarks) {
         // Get bounding box coordinates
-        const xs = landmarks.map(l => l.x)
-        const ys = landmarks.map(l => l.y)
+        const xs = landmarks.map((l: any) => l.x)
+        const ys = landmarks.map((l: any) => l.y)
         
         const minX = Math.min(...xs) * canvas.width
         const maxX = Math.max(...xs) * canvas.width

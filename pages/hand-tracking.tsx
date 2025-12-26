@@ -2,11 +2,28 @@ import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Webcam from 'react-webcam'
-import { Hands, Results } from '@mediapipe/hands'
-import { Camera } from '@mediapipe/camera_utils'
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
-import { HAND_CONNECTIONS } from '@mediapipe/hands'
 import styles from '@/styles/HandTracking.module.css'
+
+// Dynamic import to avoid SSR issues
+let Hands: any
+let Camera: any
+let drawConnectors: any
+let drawLandmarks: any
+let HAND_CONNECTIONS: any
+
+if (typeof window !== 'undefined') {
+  import('@mediapipe/hands').then(module => {
+    Hands = module.Hands
+    HAND_CONNECTIONS = module.HAND_CONNECTIONS
+  })
+  import('@mediapipe/camera_utils').then(module => {
+    Camera = module.Camera
+  })
+  import('@mediapipe/drawing_utils').then(module => {
+    drawConnectors = module.drawConnectors
+    drawLandmarks = module.drawLandmarks
+  })
+}
 
 export default function HandTracking() {
   const webcamRef = useRef<Webcam>(null)
@@ -39,7 +56,7 @@ export default function HandTracking() {
     if (!isActive || !selectedDeviceId) return
 
     const hands = new Hands({
-      locateFile: (file) => {
+      locateFile: (file: string) => {
         return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
       }
     })
@@ -72,7 +89,7 @@ export default function HandTracking() {
     }
   }, [isActive, selectedDeviceId])
 
-  function onResults(results: Results) {
+  function onResults(results: any) {
     if (!canvasRef.current) return
 
     const canvas = canvasRef.current

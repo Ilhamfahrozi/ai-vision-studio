@@ -2,11 +2,28 @@ import { useRef, useEffect, useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Webcam from 'react-webcam'
-import { Pose, Results } from '@mediapipe/pose'
-import { Camera } from '@mediapipe/camera_utils'
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
-import { POSE_CONNECTIONS } from '@mediapipe/pose'
 import styles from '@/styles/PoseDetection.module.css'
+
+// Dynamic import to avoid SSR issues
+let Pose: any
+let Camera: any
+let drawConnectors: any
+let drawLandmarks: any
+let POSE_CONNECTIONS: any
+
+if (typeof window !== 'undefined') {
+  import('@mediapipe/pose').then(module => {
+    Pose = module.Pose
+    POSE_CONNECTIONS = module.POSE_CONNECTIONS
+  })
+  import('@mediapipe/camera_utils').then(module => {
+    Camera = module.Camera
+  })
+  import('@mediapipe/drawing_utils').then(module => {
+    drawConnectors = module.drawConnectors
+    drawLandmarks = module.drawLandmarks
+  })
+}
 
 export default function PoseDetection() {
   const webcamRef = useRef<Webcam>(null)
@@ -71,7 +88,7 @@ export default function PoseDetection() {
     }
   }, [isActive, selectedDeviceId])
 
-  function onResults(results: Results) {
+  function onResults(results: any) {
     if (!canvasRef.current) return
 
     const canvas = canvasRef.current
