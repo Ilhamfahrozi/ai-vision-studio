@@ -1,13 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import Webcam from 'react-webcam'
 import styles from '@/styles/Free.module.css'
 import { useAuth } from '@/lib/AuthContext'
-import dynamic from 'next/dynamic'
-
-// Dynamic import to avoid SSR issues with YourFree
-const YourFree = dynamic(() => import('@/components/YourFree'), { ssr: false })
+import TestFree from '@/components/TestFree'
+import YourFree from '@/components/YourFree'
 
 // Dynamic import to avoid SSR issues
 let Hands: any
@@ -115,8 +112,6 @@ const OUTPUT_MAP: Record<string, { image: string; audio: string }> = {
 }
 
 export default function Free() {
-  const [mode, setMode] = useState<'selection' | 'test' | 'your'>('selection')
-  
   const webcamRef = useRef<Webcam>(null)
   const canvasLeftRef = useRef<HTMLCanvasElement>(null)
   const canvasRightRef = useRef<HTMLCanvasElement>(null)
@@ -570,69 +565,6 @@ export default function Free() {
     }
   }, [isActive, selectedDeviceId])
 
-  // Mode Selection Screen
-  if (mode === 'selection') {
-    return (
-      <>
-        <Head>
-          <title>Free Mode - AI Vision Studio</title>
-        </Head>
-
-        <div className={styles.container}>
-          <header className={styles.header}>
-            <Link href="/" className={styles.backButton}>← Back to Home</Link>
-          </header>
-
-          <div className={styles.selectionContainer}>
-            <h1 className={styles.selectionTitle}>Choose Your Free Mode</h1>
-            <p className={styles.selectionSubtitle}>Select how you want to test the AI vision features</p>
-
-            <div className={styles.cardGrid}>
-              {/* Test Free Card */}
-              <div className={styles.modeCard} onClick={() => setMode('test')}>
-                <div className={styles.cardIcon}>📹</div>
-                <h2 className={styles.cardTitle}>Test Free</h2>
-                <p className={styles.cardDescription}>
-                  Use your webcam to detect facial expressions and hand gestures in real-time. 
-                  Get instant feedback with images and audio based on your emotions and gestures.
-                </p>
-                <div className={styles.cardFeatures}>
-                  <div className={styles.feature}>✓ Real-time webcam detection</div>
-                  <div className={styles.feature}>✓ Face + Hand tracking</div>
-                  <div className={styles.feature}>✓ Instant output</div>
-                </div>
-                <button className={styles.cardButton}>Start Testing →</button>
-              </div>
-
-              {/* Your Free Card */}
-              <div className={styles.modeCard} onClick={() => setMode('your')}>
-                <div className={styles.cardIcon}>🎨</div>
-                <h2 className={styles.cardTitle}>Your Free</h2>
-                <p className={styles.cardDescription}>
-                  Upload your own images and audio files. Create custom triggers by selecting 
-                  face patterns and hand gestures to show your custom content.
-                </p>
-                <div className={styles.cardFeatures}>
-                  <div className={styles.feature}>✓ Upload custom images</div>
-                  <div className={styles.feature}>✓ Upload custom audio</div>
-                  <div className={styles.feature}>✓ Create trigger patterns</div>
-                  <div className={styles.feature}>✓ Manage your library</div>
-                </div>
-                <button className={styles.cardButton}>Create Custom →</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  // Your Free Mode - Custom upload mode
-  if (mode === 'your') {
-    return <YourFree onBack={() => setMode('selection')} />
-  }
-
-  // Test Free Mode (existing free functionality)
   return (
     <>
       <Head>
@@ -641,10 +573,10 @@ export default function Free() {
 
       <div className={styles.container}>
         <div className={styles.header}>
-          <button onClick={() => setMode('selection')} className={styles.backButton}>
-            ← Back to Selection
-          </button>
-          <h1>Test Free - Detection</h1>
+          <Link href="/" className={styles.backButton}>
+            ← Kembali
+          </Link>
+          <h1>Free Detection</h1>
         </div>
 
         <div className={styles.content}>

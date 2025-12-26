@@ -382,3 +382,120 @@
     width: 100%;
   }
 }
+
+/* Mode Selection Styles */
+.selectionContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.selectionTitle {
+  font-size: 3.5rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--color-gray-900);
+  text-shadow: 
+    4px 4px 0 var(--color-sage-light),
+    8px 8px 0 var(--color-sage);
+}
+
+.selectionSubtitle {
+  text-align: center;
+  font-size: 1.3rem;
+  color: var(--color-gray-700);
+  margin-bottom: 3rem;
+  font-weight: 700;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.modeCard {
+  background: white;
+  border: 6px solid var(--color-gray-900);
+  padding: 2.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 12px 12px 0 var(--color-gray-900);
+  position: relative;
+}
+
+.modeCard:hover {
+  transform: translate(4px, 4px);
+  box-shadow: 8px 8px 0 var(--color-gray-900);
+}
+
+.cardIcon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.cardTitle {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  color: var(--color-gray-900);
+}
+
+.cardDescription {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--color-gray-700);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.cardFeatures {
+  margin-bottom: 2rem;
+}
+
+.feature {
+  padding: 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+}
+
+.cardButton {
+  width: 100%;
+  padding: 1.2rem;
+  background: var(--color-coral);
+  color: var(--color-gray-900);
+  border: 4px solid var(--color-gray-900);
+  font-weight: 900;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 6px 6px 0 var(--color-gray-900);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cardButton:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 4px 4px 0 var(--color-gray-900);
+}
+
+@media (max-width: 768px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .selectionTitle {
+    font-size: 2.5rem;
+  }
+  
+  .modeCard {
+    padding: 2rem;
+  }
+}
