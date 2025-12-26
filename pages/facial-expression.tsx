@@ -7,6 +7,28 @@ import { Camera } from '@mediapipe/camera_utils'
 import * as faceapi from 'face-api.js'
 import styles from '@/styles/FacialExpression.module.css'
 
+// Helper function to save detection to Firebase
+async function saveToFirebase(emotion: string, confidence: number, metadata?: any) {
+  try {
+    const response = await fetch('/api/save-detection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'expression',
+        result: emotion,
+        confidence: confidence,
+        metadata: metadata
+      })
+    })
+    const data = await response.json()
+    if (data.success) {
+      console.log('✅ Saved to Firebase:', emotion, confidence)
+    }
+  } catch (error) {
+    console.error('❌ Failed to save to Firebase:', error)
+  }
+}
+
 export default function FacialExpression() {
   const webcamRef = useRef<Webcam>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -369,6 +391,7 @@ export default function FacialExpression() {
         }
         
         // Update emotion (real-time)
+        const emotionChanged = personData.emotion !== detectedEmotion
         personData.emotion = detectedEmotion
         personData.confidence = conf
         
@@ -380,6 +403,15 @@ export default function FacialExpression() {
             const newHistory = [detectedEmotion, ...prev].slice(0, 10)
             return newHistory
           })
+          
+          // Save to Firebase when emotion changes (for first person only)
+          if (emotionChanged && conf > 70) {
+            saveToFirebase(detectedEmotion, conf, {
+              age: personData.age,
+              gender: personData.gender,
+              faceIndex: i
+            })
+          }
         }
 
         // Get bounding box
