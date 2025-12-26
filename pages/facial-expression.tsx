@@ -6,6 +6,7 @@ import { FaceMesh, Results } from '@mediapipe/face_mesh'
 import { Camera } from '@mediapipe/camera_utils'
 import * as faceapi from 'face-api.js'
 import { useAuth } from '@/lib/AuthContext'
+import { saveGestureTracking } from '@/lib/gestureTracking'
 import styles from '@/styles/FacialExpression.module.css'
 
 // Helper function to save detection to Firebase
@@ -66,6 +67,13 @@ export default function FacialExpression() {
   // Color palette untuk setiap orang (max 5)
   const COLORS = ['#00ff00', '#0088ff', '#ff0000', '#ffff00', '#ff00ff'] // Green, Blue, Red, Yellow, Purple
   const DETECTION_COOLDOWN = 60000 // 60 detik (1 MENIT)
+  
+  // Gesture tracking - save every 1 minute
+  const [currentFaceExpression, setCurrentFaceExpression] = useState<string>('None')
+  const [currentHandGesture, setCurrentHandGesture] = useState<string>('None')
+  const trackingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const lastTrackingTimeRef = useRef<number>(0)
+  const TRACKING_INTERVAL = 60000 // 1 minute in milliseconds
 
   // Get available cameras
   useEffect(() => {
@@ -168,6 +176,49 @@ export default function FacialExpression() {
       faceMesh.close()
     }
   }, [isActive, selectedDeviceId])
+  
+  // Gesture tracking - save every 1 minute
+  useEffect(() => {
+    if (!isActive || !user) return
+    
+    const trackGestures = async () => {
+      const currentTime = Date.now()
+      
+      // Check if 1 minute has passed
+      if (currentTime - lastTrackingTimeRef.current >= TRACKING_INTERVAL) {
+        if (currentFaceExpression !== 'None' || currentHandGesture !== 'None') {
+          try {
+            await saveGestureTracking({
+              userId: user.uid,
+              faceExpression: currentFaceExpression,
+              handGesture: currentHandGesture,
+              timestamp: new Date()
+            })
+            console.log('📊 Gesture tracked:', currentFaceExpression, currentHandGesture)
+          } catch (error) {
+            console.error('❌ Failed to track gesture:', error)
+          }
+        }
+        lastTrackingTimeRef.current = currentTime
+      }
+    }
+    
+    // Set interval to check every 10 seconds
+    trackingIntervalRef.current = setInterval(trackGestures, 10000)
+    
+    return () => {
+      if (trackingIntervalRef.current) {
+        clearInterval(trackingIntervalRef.current)
+      }
+    }
+  }, [isActive, user, currentFaceExpression, currentHandGesture])
+  
+  // Update current expression whenever people state changes
+  useEffect(() => {
+    if (people.length > 0 && people[0].emotion !== 'None') {
+      setCurrentFaceExpression(people[0].emotion)
+    }
+  }, [people])
 
   function detectEmotion(landmarks: any): { emotion: string; confidence: number } {
     if (!landmarks || landmarks.length < 468) {

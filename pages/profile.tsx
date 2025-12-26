@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/lib/AuthContext';
 import { updateProfile, updatePassword } from 'firebase/auth';
+import { getPersonalityAnalysis, PersonalityAnalysis } from '@/lib/gestureTracking';
 import styles from '@/styles/Profile.module.css';
 
 interface Detection {
@@ -25,6 +26,10 @@ export default function Profile() {
     expressions: {} as Record<string, number>
   });
   
+  // Personality analysis from gesture tracking
+  const [personality, setPersonality] = useState<PersonalityAnalysis | null>(null);
+  const [personalityLoading, setPersonalityLoading] = useState(true);
+  
   // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
@@ -41,6 +46,7 @@ export default function Profile() {
     }
 
     fetchDetections();
+    fetchPersonalityAnalysis();
   }, [user]);
   
   useEffect(() => {
@@ -66,6 +72,20 @@ export default function Profile() {
       console.error('Error fetching detections:', error);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchPersonalityAnalysis = async () => {
+    if (!user) return;
+    
+    try {
+      setPersonalityLoading(true);
+      const analysis = await getPersonalityAnalysis(user.uid);
+      setPersonality(analysis);
+    } catch (error) {
+      console.error('Error fetching personality analysis:', error);
+    } finally {
+      setPersonalityLoading(false);
     }
   };
 
@@ -238,6 +258,76 @@ export default function Profile() {
               </div>
             )}
           </div>
+
+          {/* Personality Analysis */}
+          {!personalityLoading && personality && personality.totalTracked > 0 && (
+            <div className={styles.personalitySection}>
+              <h2>🎭 Your Personality Analysis</h2>
+              <p className={styles.personalitySubtitle}>
+                Based on {personality.totalTracked} tracked gestures
+              </p>
+              
+              <div className={styles.personalityGrid}>
+                {/* Face Personality */}
+                <div className={styles.personalityCard}>
+                  <div className={styles.personalityIcon}>😊</div>
+                  <h3>Face Expression</h3>
+                  <div className={styles.personalityMain}>
+                    <div className={styles.expressionName}>{personality.mostCommonFace}</div>
+                    <div className={styles.personalityLabel}>{personality.facePersonality}</div>
+                  </div>
+                  <div className={styles.personalityStats}>
+                    {Object.entries(personality.faceStats)
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 3)
+                      .map(([face, count]) => (
+                        <div key={face} className={styles.statItem}>
+                          <span className={styles.statName}>{face}</span>
+                          <span className={styles.statCount}>{count}x</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Hand Personality */}
+                <div className={styles.personalityCard}>
+                  <div className={styles.personalityIcon}>👋</div>
+                  <h3>Hand Gesture</h3>
+                  <div className={styles.personalityMain}>
+                    <div className={styles.expressionName}>
+                      {personality.mostCommonHand === 'None' ? 'Natural' : personality.mostCommonHand}
+                    </div>
+                    <div className={styles.personalityLabel}>{personality.handPersonality}</div>
+                  </div>
+                  <div className={styles.personalityStats}>
+                    {Object.entries(personality.handStats)
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 3)
+                      .map(([hand, count]) => (
+                        <div key={hand} className={styles.statItem}>
+                          <span className={styles.statName}>{hand}</span>
+                          <span className={styles.statCount}>{count}x</span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className={styles.personalityHint}>
+                💡 <strong>Tip:</strong> Use Facial Expression detection feature for at least 1 minute to track your personality!
+              </div>
+            </div>
+          )}
+          
+          {!personalityLoading && (!personality || personality.totalTracked === 0) && (
+            <div className={styles.personalityEmpty}>
+              <h3>🎭 Personality Analysis</h3>
+              <p>Start using the Facial Expression detection feature to discover your personality based on your most common expressions and gestures!</p>
+              <Link href="/facial-expression" className={styles.startButton}>
+                Start Detection →
+              </Link>
+            </div>
+          )}
 
           {/* Stats Cards */}
           <div className={styles.statsGrid}>

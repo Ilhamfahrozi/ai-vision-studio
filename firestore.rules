@@ -1,0 +1,63 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Detections collection - user's facial expression and gesture detections
+    match /detections/{detectionId} {
+      // Users can read their own detections
+      allow read: if request.auth != null && 
+                    resource.data.userId == request.auth.uid;
+      
+      // Users can create detections with their own userId
+      allow create: if request.auth != null && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own detections
+      allow update: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own detections
+      allow delete: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+    }
+    
+    // Custom Triggers collection - user's custom image/audio triggers
+    match /customTriggers/{triggerId} {
+      // Users can read their own custom triggers
+      allow read: if request.auth != null && 
+                    resource.data.userId == request.auth.uid;
+      
+      // Users can create custom triggers with their own userId
+      allow create: if request.auth != null && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own custom triggers
+      allow update: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own custom triggers
+      allow delete: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+    }
+    
+    // Gesture Tracking collection - track user's gesture patterns over time
+    match /gestureTracking/{trackingId} {
+      // Users can read their own tracking data
+      allow read: if request.auth != null && 
+                    resource.data.userId == request.auth.uid;
+      
+      // Users can create tracking data with their own userId
+      allow create: if request.auth != null && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own tracking data
+      allow update: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own tracking data
+      allow delete: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+    }
+  }
+}
