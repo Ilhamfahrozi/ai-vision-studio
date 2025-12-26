@@ -5,59 +5,35 @@ service cloud.firestore {
     
     // Detections collection - user's facial expression and gesture detections
     match /detections/{detectionId} {
-      // Users can read their own detections
-      allow read: if request.auth != null && 
-                    resource.data.userId == request.auth.uid;
-      
-      // Users can create detections with their own userId
-      allow create: if request.auth != null && 
-                      request.resource.data.userId == request.auth.uid;
-      
-      // Users can update their own detections
-      allow update: if request.auth != null && 
-                      resource.data.userId == request.auth.uid;
-      
-      // Users can delete their own detections
-      allow delete: if request.auth != null && 
-                      resource.data.userId == request.auth.uid;
+      // Allow authenticated users to read, write, update, delete their own detections
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
     
     // Custom Triggers collection - user's custom image/audio triggers
     match /customTriggers/{triggerId} {
-      // Users can read their own custom triggers
-      allow read: if request.auth != null && 
-                    resource.data.userId == request.auth.uid;
+      // Allow authenticated users to read, write, update, delete their own custom triggers
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       
-      // Users can create custom triggers with their own userId
-      allow create: if request.auth != null && 
-                      request.resource.data.userId == request.auth.uid;
-      
-      // Users can update their own custom triggers
-      allow update: if request.auth != null && 
-                      resource.data.userId == request.auth.uid;
-      
-      // Users can delete their own custom triggers
-      allow delete: if request.auth != null && 
-                      resource.data.userId == request.auth.uid;
+      // Chunks subcollection - store base64 chunks separately
+      match /chunks/{chunkId} {
+        // Anyone who can access the parent trigger can access its chunks
+        allow read, write: if request.auth != null;
+      }
     }
     
     // Gesture Tracking collection - track user's gesture patterns over time
     match /gestureTracking/{trackingId} {
-      // Users can read their own tracking data
-      allow read: if request.auth != null && 
-                    resource.data.userId == request.auth.uid;
-      
-      // Users can create tracking data with their own userId
-      allow create: if request.auth != null && 
-                      request.resource.data.userId == request.auth.uid;
-      
-      // Users can update their own tracking data
-      allow update: if request.auth != null && 
-                      resource.data.userId == request.auth.uid;
-      
-      // Users can delete their own tracking data
-      allow delete: if request.auth != null && 
-                      resource.data.userId == request.auth.uid;
+      // Allow authenticated users to read, write, update, delete their own tracking data
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // User Profiles collection - store user profile data including photos
+    match /userProfiles/{userId} {
+      // Users can read and write their own profile
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

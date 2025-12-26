@@ -1,10 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/lib/AuthContext';
+import { useProfilePhoto } from '@/lib/useProfilePhoto';
 import { updateProfile, updatePassword } from 'firebase/auth';
 import { getPersonalityAnalysis, PersonalityAnalysis } from '@/lib/gestureTracking';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, collection, query, where, orderBy, limit as queryLimit, getDocs } from 'firebase/firestore';
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import styles from '@/styles/Profile.module.css';
 
 interface Detection {
@@ -19,6 +24,7 @@ interface Detection {
 export default function Profile() {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const { photoURL: profilePhoto, loading: photoLoading } = useProfilePhoto(user?.uid);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -38,10 +44,32 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [updateMessage, setUpdateMessage] = useState('');
   const [updateError, setUpdateError] = useState('');
+  
+  // Photo upload and crop states
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string>('');
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    width: 50,
+    height: 50,
+    x: 25,
+    y: 25
+  });
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const imgRef = useRef<HTMLImageElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Photo viewer modal (WhatsApp style)
+  const [isViewingPhoto, setIsViewingPhoto] = useState(false);
+  const [photoZoom, setPhotoZoom] = useState(1); // 1 = 100%, 2 = 200%, etc
+  const [photoPan, setPhotoPan] = useState({ x: 0, y: 0 }); // Pan position
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      // User will see AuthModal automatically from _app.tsx
+      // No need to redirect - just wait for authentication
       return;
     }
 
@@ -56,18 +84,29 @@ export default function Profile() {
   }, [user]);
 
   const fetchDetections = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    
     try {
-      const url = user?.uid 
-        ? `/api/get-detections?limit=50&userId=${user.uid}`
-        : '/api/get-detections?limit=50';
+      // Query Firestore directly (client-side with auth context)
+      const detectionsRef = collection(db, 'detections');
+      const q = query(
+        detectionsRef,
+        where('userId', '==', user.uid),
+        orderBy('timestamp', 'desc'),
+        queryLimit(50)
+      );
       
-      const response = await fetch(url);
-      const data = await response.json();
+      const querySnapshot = await getDocs(q);
+      const data: Detection[] = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Detection));
       
-      if (data.success) {
-        setDetections(data.data);
-        calculateStats(data.data);
-      }
+      setDetections(data);
+      calculateStats(data);
     } catch (error) {
       console.error('Error fetching detections:', error);
     } finally {
@@ -149,10 +188,156 @@ export default function Profile() {
       setUpdateError(error.message || 'Failed to change password. Try logging out and in again.');
     }
   };
+  
+  // Handle photo selection
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      setUpdateError('❌ Please select an image file');
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setUpdateError('❌ Image must be less than 5MB');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setSelectedImage(reader.result as string);
+      setIsUploadingPhoto(true);
+      setUpdateError('');
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Create cropped image
+  const getCroppedImg = (image: HTMLImageElement, crop: PixelCrop): Promise<string> => {
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    
+    // Make it square
+    const size = Math.min(crop.width * scaleX, crop.height * scaleY);
+    canvas.width = 300;
+    canvas.height = 300;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('No 2d context');
+    
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      size,
+      size,
+      0,
+      0,
+      300,
+      300
+    );
+    
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          resolve('');
+          return;
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+          resolve(reader.result as string);
+        };
+      }, 'image/jpeg', 0.9);
+    });
+  };
+  
+  // Save cropped photo
+  const handleSavePhoto = async () => {
+    if (!user || !imgRef.current || !completedCrop) return;
+    
+    setUpdateError('');
+    setUpdateMessage('');
+    
+    try {
+      console.log('🖼️ Cropping image...');
+      const croppedImage = await getCroppedImg(imgRef.current, completedCrop);
+      
+      console.log('💾 Saving to Firestore...');
+      // Save ONLY to Firestore (base64), NOT to Firebase Auth (has URL length limit)
+      await setDoc(doc(db, 'userProfiles', user.uid), {
+        photoURL: croppedImage,
+        updatedAt: new Date()
+      }, { merge: true });
+      
+      console.log('✅ Photo saved to Firestore');
+      // Photo will be automatically reloaded by useProfilePhoto hook
+      setUpdateMessage('✅ Profile photo updated successfully!');
+      setIsUploadingPhoto(false);
+      setSelectedImage('');
+      
+      // Force page reload to refresh photo from hook
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error: any) {
+      console.error('❌ Error updating photo:', error);
+      setUpdateError(error.message || 'Failed to update photo');
+    }
+  };
+  
+  // Cancel photo upload
+  const handleCancelPhoto = () => {
+    setIsUploadingPhoto(false);
+    setSelectedImage('');
+    setCompletedCrop(undefined);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
     router.push('/');
+  };
+  
+  // Photo viewer zoom controls
+  const handlePhotoWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setPhotoZoom(prev => Math.max(0.5, Math.min(5, prev + delta))); // Min 50%, Max 500%
+  };
+  
+  const handlePhotoMouseDown = (e: React.MouseEvent) => {
+    if (photoZoom > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - photoPan.x, y: e.clientY - photoPan.y });
+    }
+  };
+  
+  const handlePhotoMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setPhotoPan({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y
+      });
+    }
+  };
+  
+  const handlePhotoMouseUp = () => {
+    setIsDragging(false);
+  };
+  
+  const resetPhotoView = () => {
+    setPhotoZoom(1);
+    setPhotoPan({ x: 0, y: 0 });
+  };
+  
+  const closePhotoModal = () => {
+    setIsViewingPhoto(false);
+    resetPhotoView();
   };
 
   const formatDate = (timestamp: any) => {
@@ -187,16 +372,40 @@ export default function Profile() {
           {/* User Info Card */}
           <div className={styles.userCard}>
             <div className={styles.avatar}>
-              {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || 'User'} />
+              {profilePhoto ? (
+                <img 
+                  src={profilePhoto} 
+                  alt={user.displayName || 'User'} 
+                  onClick={() => setIsViewingPhoto(true)}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view full size"
+                />
               ) : (
                 <div className={styles.avatarPlaceholder}>
                   {(user.displayName || user.email || 'U')[0].toUpperCase()}
                 </div>
               )}
+              
+              {/* Change Photo Button */}
+              {!isUploadingPhoto && (
+                <button 
+                  onClick={() => fileInputRef.current?.click()} 
+                  className={styles.changePhotoBtn}
+                  title="Change profile photo"
+                >
+                  📷
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                style={{ display: 'none' }}
+              />
             </div>
             
-            {!isEditing && !isChangingPassword ? (
+            {!isEditing && !isChangingPassword && !isUploadingPhoto ? (
               <>
                 <h1>{user.displayName || 'User'}</h1>
                 <p className={styles.email}>{user.email}</p>
@@ -226,6 +435,35 @@ export default function Profile() {
                 <div className={styles.formButtons}>
                   <button onClick={handleUpdateProfile} className={styles.saveButton}>Save Changes</button>
                   <button onClick={() => { setIsEditing(false); setUpdateError(''); setUpdateMessage(''); }} className={styles.cancelButton}>Cancel</button>
+                </div>
+              </div>
+            ) : isUploadingPhoto ? (
+              <div className={styles.editForm}>
+                <h2>Crop Profile Photo</h2>
+                <p className={styles.cropHint}>🔲 Drag to select a square area for your profile photo</p>
+                {selectedImage && (
+                  <div className={styles.cropContainer}>
+                    <ReactCrop
+                      crop={crop}
+                      onChange={(c) => setCrop(c)}
+                      onComplete={(c) => setCompletedCrop(c)}
+                      aspect={1}
+                      circularCrop={false}
+                    >
+                      <img
+                        ref={imgRef}
+                        src={selectedImage}
+                        alt="Crop preview"
+                        style={{ maxWidth: '100%', maxHeight: '400px' }}
+                      />
+                    </ReactCrop>
+                  </div>
+                )}
+                {updateMessage && <div className={styles.success}>{updateMessage}</div>}
+                {updateError && <div className={styles.error}>{updateError}</div>}
+                <div className={styles.formButtons}>
+                  <button onClick={handleSavePhoto} className={styles.saveButton}>Save Photo</button>
+                  <button onClick={handleCancelPhoto} className={styles.cancelButton}>Cancel</button>
                 </div>
               </div>
             ) : (
@@ -329,26 +567,6 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Stats Cards */}
-          <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <div className={styles.statNumber}>{stats.total}</div>
-              <div className={styles.statLabel}>Total Detections</div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statNumber}>{Object.keys(stats.expressions).length}</div>
-              <div className={styles.statLabel}>Unique Expressions</div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statNumber}>
-                {Object.keys(stats.expressions).length > 0 
-                  ? Object.entries(stats.expressions).sort((a, b) => b[1] - a[1])[0][0]
-                  : 'N/A'}
-              </div>
-              <div className={styles.statLabel}>Most Common</div>
-            </div>
-          </div>
-
           {/* Expression Distribution */}
           {Object.keys(stats.expressions).length > 0 && (
             <div className={styles.section}>
@@ -376,43 +594,85 @@ export default function Profile() {
               </div>
             </div>
           )}
-
-          {/* Detection History */}
-          <div className={styles.section}>
-            <h2>Recent Detections</h2>
-            {loading ? (
-              <div className={styles.loading}>Loading...</div>
-            ) : detections.length === 0 ? (
-              <div className={styles.empty}>
-                <p>No detections yet. Start using the app to see your history!</p>
-                <Link href="/facial-expression" className={styles.startButton}>
-                  Start Detecting →
-                </Link>
-              </div>
-            ) : (
-              <div className={styles.detectionList}>
-                {detections.map((detection) => (
-                  <div key={detection.id} className={styles.detectionItem}>
-                    <div className={styles.detectionIcon}>
-                      {detection.type === 'expression' ? '😊' : '👋'}
-                    </div>
-                    <div className={styles.detectionInfo}>
-                      <div className={styles.detectionResult}>{detection.result}</div>
-                      <div className={styles.detectionMeta}>
-                        {detection.type} • {detection.confidence}% confidence
-                        {detection.metadata?.age && ` • ${detection.metadata.age}yo ${detection.metadata.gender}`}
-                      </div>
-                    </div>
-                    <div className={styles.detectionTime}>
-                      {formatDate(detection.timestamp)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
+      
+      {/* Photo Viewer Modal (WhatsApp style with zoom) */}
+      {isViewingPhoto && profilePhoto && (
+        <div className={styles.photoModal} onClick={closePhotoModal}>
+          <div className={styles.photoModalHeader}>
+            <div className={styles.photoModalInfo}>
+              <h3>{user.displayName || 'User'}</h3>
+              <p>{user.email}</p>
+            </div>
+            <div className={styles.photoModalControls}>
+              <div className={styles.zoomInfo}>
+                {Math.round(photoZoom * 100)}%
+              </div>
+              <button 
+                className={styles.zoomBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPhotoZoom(prev => Math.max(0.5, prev - 0.2));
+                }}
+                title="Zoom out"
+              >
+                −
+              </button>
+              <button 
+                className={styles.zoomBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPhotoZoom(prev => Math.min(5, prev + 0.2));
+                }}
+                title="Zoom in"
+              >
+                +
+              </button>
+              <button 
+                className={styles.zoomBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  resetPhotoView();
+                }}
+                title="Reset zoom"
+              >
+                ↺
+              </button>
+              <button 
+                className={styles.photoModalClose}
+                onClick={closePhotoModal}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <div 
+            className={styles.photoModalContent}
+            onWheel={handlePhotoWheel}
+            onMouseDown={handlePhotoMouseDown}
+            onMouseMove={handlePhotoMouseMove}
+            onMouseUp={handlePhotoMouseUp}
+            onMouseLeave={handlePhotoMouseUp}
+            style={{ cursor: photoZoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'pointer' }}
+          >
+            <img 
+              src={profilePhoto} 
+              alt={user.displayName || 'User'}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                transform: `scale(${photoZoom}) translate(${photoPan.x / photoZoom}px, ${photoPan.y / photoZoom}px)`,
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+                userSelect: 'none'
+              }}
+              draggable={false}
+            />
+          </div>
+          <div className={styles.photoModalHint}>
+            💡 Scroll to zoom • Drag to pan • Click outside to close
+          </div>
+        </div>
+      )}
     </>
   );
 }

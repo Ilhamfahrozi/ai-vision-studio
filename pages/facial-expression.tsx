@@ -74,6 +74,10 @@ export default function FacialExpression() {
   const trackingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastTrackingTimeRef = useRef<number>(0)
   const TRACKING_INTERVAL = 60000 // 1 minute in milliseconds
+  
+  // Detection save throttle - save maksimal setiap 2 menit
+  const lastSaveTimeRef = useRef<number>(0)
+  const SAVE_INTERVAL = 120000 // 2 menit (120 detik)
 
   // Get available cameras
   useEffect(() => {
@@ -458,13 +462,21 @@ export default function FacialExpression() {
             return newHistory
           })
           
-          // Save to Firebase when emotion changes (for first person only)
-          if (emotionChanged && conf > 70) {
+          // Save to Firebase maksimal setiap 2 menit (throttled)
+          const now = Date.now()
+          const timeSinceLastSave = now - lastSaveTimeRef.current
+          
+          if (emotionChanged && conf > 70 && timeSinceLastSave >= SAVE_INTERVAL) {
+            console.log(`💾 Saving to Firebase (last save was ${Math.floor(timeSinceLastSave / 1000)}s ago)`)
+            lastSaveTimeRef.current = now
             saveToFirebase(detectedEmotion, conf, user?.uid, {
               age: personData.age,
               gender: personData.gender,
               faceIndex: i
             })
+          } else if (emotionChanged && conf > 70) {
+            const remainingTime = Math.ceil((SAVE_INTERVAL - timeSinceLastSave) / 1000)
+            console.log(`⏱️ Skip save - next save in ${remainingTime}s`)
           }
         }
 

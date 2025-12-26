@@ -1,10 +1,12 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { useAuth } from '@/lib/AuthContext'
+import { useProfilePhoto } from '@/lib/useProfilePhoto'
 import styles from '@/styles/Home.module.css'
 
 export default function Home() {
   const { user } = useAuth()
+  const { photoURL } = useProfilePhoto(user?.uid)
   
   const features = [
     {
@@ -48,8 +50,8 @@ export default function Home() {
             {user ? (
               <Link href="/profile" className={styles.profileLink}>
                 <span className={styles.profileIcon}>
-                  {user.photoURL ? (
-                    <img src={user.photoURL} alt="Profile" />
+                  {photoURL ? (
+                    <img src={photoURL} alt="Profile" />
                   ) : (
                     (user.displayName || user.email || 'U')[0].toUpperCase()
                   )}
@@ -58,8 +60,7 @@ export default function Home() {
               </Link>
             ) : (
               <div className={styles.authButtons}>
-                <Link href="/login" className={styles.loginButton}>Login</Link>
-                <Link href="/register" className={styles.registerButton}>Sign Up</Link>
+                <p className={styles.loginHint}>🔒 Please refresh or wait for login modal</p>
               </div>
             )}
           </div>
