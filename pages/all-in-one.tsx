@@ -69,15 +69,15 @@ export default function AllInOne() {
   useEffect(() => {
     if (!isActive || !selectedDeviceId) return
 
-    let handsInstance: Hands | null = null
-    let faceMeshInstance: FaceMesh | null = null
-    let poseInstance: Pose | null = null
-    let cameraInstance: Camera | null = null
+    let handsInstance: any = null
+    let faceMeshInstance: any = null
+    let poseInstance: any = null
+    let cameraInstance: any = null
 
     const init = async () => {
       // Initialize Hands
       handsInstance = new Hands({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
       })
       handsInstance.setOptions({
         maxNumHands: 2,
@@ -88,7 +88,7 @@ export default function AllInOne() {
 
       // Initialize Face Mesh
       faceMeshInstance = new FaceMesh({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
       })
       faceMeshInstance.setOptions({
         maxNumFaces: 1,
@@ -99,7 +99,7 @@ export default function AllInOne() {
 
       // Initialize Pose
       poseInstance = new Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
       })
       poseInstance.setOptions({
         modelComplexity: 1,
@@ -113,17 +113,17 @@ export default function AllInOne() {
       let faceResults: any = null
       let poseResults: any = null
 
-      handsInstance.onResults((results) => {
+      handsInstance.onResults((results: any) => {
         handResults = results
         drawCombined()
       })
 
-      faceMeshInstance.onResults((results) => {
+      faceMeshInstance.onResults((results: any) => {
         faceResults = results
         drawCombined()
       })
 
-      poseInstance.onResults((results) => {
+      poseInstance.onResults((results: any) => {
         poseResults = results
         drawCombined()
       })

@@ -76,14 +76,14 @@ export default function AllInOneMedia() {
   useEffect(() => {
     if (!isActive || !selectedDeviceId) return
 
-    let handsInstance: Hands | null = null
-    let faceMeshInstance: FaceMesh | null = null
-    let poseInstance: Pose | null = null
-    let cameraInstance: Camera | null = null
+    let handsInstance: any = null
+    let faceMeshInstance: any = null
+    let poseInstance: any = null
+    let cameraInstance: any = null
 
     const init = async () => {
       handsInstance = new Hands({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
       })
       handsInstance.setOptions({
         maxNumHands: 2,
@@ -93,7 +93,7 @@ export default function AllInOneMedia() {
       })
 
       faceMeshInstance = new FaceMesh({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
       })
       faceMeshInstance.setOptions({
         maxNumFaces: 1,
@@ -103,7 +103,7 @@ export default function AllInOneMedia() {
       })
 
       poseInstance = new Pose({
-        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
       })
       poseInstance.setOptions({
         modelComplexity: 1,
@@ -116,17 +116,17 @@ export default function AllInOneMedia() {
       let faceResults: any = null
       let poseResults: any = null
 
-      handsInstance.onResults((results) => {
+      handsInstance.onResults((results: any) => {
         handResults = results
         drawCombinedLeft()
       })
 
-      faceMeshInstance.onResults((results) => {
+      faceMeshInstance.onResults((results: any) => {
         faceResults = results
         drawCombinedLeft()
       })
 
-      poseInstance.onResults((results) => {
+      poseInstance.onResults((results: any) => {
         poseResults = results
         drawCombinedLeft()
       })
@@ -266,7 +266,7 @@ export default function AllInOneMedia() {
 
     // Initialize MediaPipe for static image
     const hands = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
     })
     hands.setOptions({
       maxNumHands: 2,
@@ -276,7 +276,7 @@ export default function AllInOneMedia() {
     })
 
     const faceMesh = new FaceMesh({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+      locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
     })
     faceMesh.setOptions({
       maxNumFaces: 1,
@@ -286,7 +286,7 @@ export default function AllInOneMedia() {
     })
 
     const pose = new Pose({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+      locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
     })
     pose.setOptions({
       modelComplexity: 1,
@@ -297,7 +297,7 @@ export default function AllInOneMedia() {
     let stats = { hands: 0, face: false, pose: false, emotion: 'None', gesture: 'None' }
 
     // Process all detections
-    hands.onResults((results) => {
+    hands.onResults((results: any) => {
       if (results.multiHandLandmarks) {
         stats.hands = results.multiHandLandmarks.length
         for (const landmarks of results.multiHandLandmarks) {
@@ -308,7 +308,7 @@ export default function AllInOneMedia() {
       }
     })
 
-    faceMesh.onResults((results) => {
+    faceMesh.onResults((results: any) => {
       if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
         stats.face = true
         const landmarks = results.multiFaceLandmarks[0]
@@ -336,7 +336,7 @@ export default function AllInOneMedia() {
       setRightStats(stats)
     })
 
-    pose.onResults((results) => {
+    pose.onResults((results: any) => {
       if (results.poseLandmarks) {
         stats.pose = true
         drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00ff00', lineWidth: 2 })
